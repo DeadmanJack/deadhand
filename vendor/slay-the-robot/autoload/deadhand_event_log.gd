@@ -31,7 +31,7 @@ const LOG_DIR := "user://logs/runs/"
 const BUS_SIGNALS: Array[String] = [
 	"card_drawn", "card_played", "card_discarded", "card_burned",
 	"check_resolved", "shot_resolved", "encounter_started", "encounter_resolved",
-	"phase_advanced", "day_advanced", "rest_forced",
+	"phase_advanced", "day_advanced", "rest_forced", "task_availability_changed",
 	"notoriety_changed", "notoriety_threshold_crossed", "money_changed", "loot_rolled",
 	"hidden_trigger_fired", "memory_card_revealed", "journal_entry_unlocked",
 	"set_bonus_activated", "set_bonus_deactivated",

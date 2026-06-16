@@ -45,6 +45,7 @@ DeadhandRNGService="*res://autoload/deadhand_rng_service.gd"
 DeadhandRunState="*res://autoload/deadhand_run_state.gd"
 DeadhandPhaseClock="*res://autoload/deadhand_phase_clock.gd"
 DeadhandNotorietyTracker="*res://autoload/deadhand_notoriety_tracker.gd"
+DeadhandTaskRegistry="*res://autoload/deadhand_task_registry.gd"
 
 [debug]
 

@@ -144,3 +144,17 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
   - `tests/test_deadhand_rng_service.gd` — rename `seed` parameter to `run_seed` (Godot 4 reserved name parse fix); reset autoload RNG state in UID test
 - Purpose: Wave 3B go/no-go gate — Cemetery task + Town Drunk duel + module wiring verified end-to-end.
 - Verified: `godot4 --headless --path . --quit-after 60` exit 0; full GUT suite pass including vertical slice and RNG tests.
+
+### 2026-06-16: TaskRegistry phase availability autoload (W4-2)
+
+- Patch: Phase-filtered task availability from Global task data vs RunState phase.
+- Files added:
+  - `autoload/deadhand_task_registry.gd` — `get_available_task_ids`, `is_task_available`; recomputes on `phase_advanced`
+  - `autoload/deadhand_payloads/task_availability_changed_payload.gd` — typed payload for availability events
+  - `tests/test_deadhand_task_registry.gd` — night rob_grave vs morning pan_for_gold; phase_advanced signal
+- Files modified:
+  - `autoload/deadhand_event_bus.gd` — `task_availability_changed` signal + `emit_task_availability_changed`
+  - `autoload/deadhand_event_log.gd` — log `task_availability_changed` events
+  - `project.godot` — `[autoload]` entry for `DeadhandTaskRegistry` (after `DeadhandNotorietyTracker`)
+- Purpose: Wave 4 TaskRegistry module per TDD §3.1 / GDD §7.1 time-of-day restrictions.
+- Verified: `godot4 --headless --path . --import`, then GUT run of `tests/test_deadhand_task_registry.gd`; headless boot exit 0.

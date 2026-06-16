@@ -9,7 +9,7 @@
 # Emits events:
 #   - card_drawn, card_played, card_discarded, card_burned
 #   - check_resolved, shot_resolved, encounter_started, encounter_resolved
-#   - phase_advanced, day_advanced, rest_forced
+#   - phase_advanced, day_advanced, rest_forced, task_availability_changed
 #   - notoriety_changed, notoriety_threshold_crossed, money_changed, loot_rolled
 #   - hidden_trigger_fired, memory_card_revealed, journal_entry_unlocked
 #   - set_bonus_activated, set_bonus_deactivated
@@ -36,6 +36,7 @@ signal encounter_resolved(payload: EncounterResolvedPayload)
 signal phase_advanced(payload: PhaseAdvancedPayload)
 signal day_advanced(payload: DayAdvancedPayload)
 signal rest_forced(payload: RestForcedPayload)
+signal task_availability_changed(payload: TaskAvailabilityChangedPayload)
 signal notoriety_changed(payload: NotorietyChangedPayload)
 signal notoriety_threshold_crossed(payload: NotorietyThresholdCrossedPayload)
 signal money_changed(payload: MoneyChangedPayload)
@@ -132,6 +133,13 @@ func emit_rest_forced(reason: String, location: String = "") -> void:
 	payload.reason = reason
 	payload.location = location
 	rest_forced.emit(payload)
+
+
+func emit_task_availability_changed(phase: String, available_task_ids: Array[String]) -> void:
+	var payload := TaskAvailabilityChangedPayload.new()
+	payload.phase = phase
+	payload.available_task_ids = available_task_ids.duplicate()
+	task_availability_changed.emit(payload)
 
 
 func emit_notoriety_changed(old_value: int, new_value: int, reason: String = "") -> void:
