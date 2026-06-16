@@ -1,0 +1,27 @@
+{
+	"patch_data": {
+
+	},
+	"properties": {
+		"object_id": "encounter_town_drunk",
+		"object_uid": "",
+		"contested_name": "The Town Drunk",
+		"contested_primary_suit": "spades",
+		"contested_rounds": 3,
+		"contested_bust_line": 21,
+		"contested_player_wound_limit": 3,
+		"contested_opponent_deck_template_id": "deck_town_drunk",
+		"contested_opponent_wound_limit": 3,
+		"contested_opponent_hand_size": 5,
+		"contested_on_win_actions": [
+			{
+				"res://game/scripts/actions/deadhand/ActionDeadhandGrantContestedRewards.gd": {
+					"money_min": 3,
+					"money_max": 3
+				}
+			}
+		],
+		"contested_on_lose_actions": [],
+		"contested_flavor_text": "He squares up in the alley, bottle still in hand."
+	}
+}

@@ -85,15 +85,12 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
   - `data/PrototypeData.gd` — preload-based RNGService hook (no `class_name` collision)
 - Verified: `godot4 --headless --path . --quit-after 60` exit 0; full GUT suite 23/23 pass; mod card/task loaded; EventLog captures boot JSONL.
 
-### 2026-06-15: RunState + PhaseClock (W3-1)
+### 2026-06-15: ContestedEncounterRunner state machine (W3-3)
 
-- Patch: Core run-state and day/phase progression autoloads with GUT coverage.
+- Patch: Head-to-head contested encounter runner with 3-round simultaneous reveal, bust line, and wound tracking.
 - Files added:
-  - `autoload/deadhand_run_state.gd` — owns day, phase, money, wounds, action budget; emits `run_state_changed` and `money_changed`
-  - `autoload/deadhand_phase_clock.gd` — M→A→E→N cycle, forced rest after night, day advance
-  - `autoload/deadhand_payloads/run_state_changed_payload.gd`
-  - `tests/test_deadhand_run_state.gd`, `tests/test_deadhand_phase_clock.gd`
-- Files modified:
-  - `autoload/deadhand_event_bus.gd` — `run_state_changed` signal + `emit_run_state_changed()` helper
-  - `project.godot` — autoload entries for `DeadhandRunState`, `DeadhandPhaseClock` (after `DeadhandRNGService`)
-- Verified: GUT runs for run state (3/3) and phase clock (2/2) tests pass headlessly; headless boot exit 0.
+  - `scripts/deadhand/deadhand_contested_encounter_runner.gd` — RefCounted state machine (IDLE → IN_ROUND → RESOLVED)
+  - `external/mods/deadhand/contested_encounters/encounter_town_drunk.json` — Town Drunk duel fixture
+  - `tests/test_deadhand_contested_encounter_runner.gd` — deterministic seed-42 scenario + event sequence assertions
+- Purpose: Wave 3 contested encounter module per TDD §8.6 / §9.5 and GDD §4.2. Emits `encounter_started`, `shot_resolved`, `encounter_resolved` via DeadhandEventBus; RNG track `rng_contested`.
+- Verified: `godot4 --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/test_deadhand_contested_encounter_runner.gd -gexit` → `3/3 passed`, exit 0.
