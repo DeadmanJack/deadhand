@@ -5,8 +5,8 @@ const EventLogScript = preload("res://autoload/deadhand_event_log.gd")
 
 
 func _make_bus_and_log() -> Array:
-	var bus: DeadhandEventBus = EventBusScript.new()
-	var log: Node = EventLogScript.new()
+	var bus = EventBusScript.new()
+	var log = EventLogScript.new()
 	add_child_autofree(bus)
 	add_child_autofree(log)
 	log.bind_event_bus(bus)
@@ -16,8 +16,8 @@ func _make_bus_and_log() -> Array:
 
 func test_start_run_writes_jsonl_with_required_fields() -> void:
 	var nodes: Array = await _make_bus_and_log()
-	var bus: DeadhandEventBus = nodes[0]
-	var log: Node = nodes[1]
+	var bus = nodes[0]
+	var log = nodes[1]
 
 	log.start_run(8675309, "default")
 	bus.emit_phase_advanced(1, "morning")
@@ -46,8 +46,8 @@ func test_start_run_writes_jsonl_with_required_fields() -> void:
 
 func test_event_log_records_subsequent_events() -> void:
 	var nodes: Array = await _make_bus_and_log()
-	var bus: DeadhandEventBus = nodes[0]
-	var log: Node = nodes[1]
+	var bus = nodes[0]
+	var log = nodes[1]
 
 	log.start_run(42)
 	bus.emit_card_drawn("5_clubs", "hand")

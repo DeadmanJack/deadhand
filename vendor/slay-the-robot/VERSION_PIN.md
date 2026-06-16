@@ -60,19 +60,27 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
   - `autoload/deadhand_rng_service.gd` — seeded per-track RNG service with deterministic UID generation.
   - `tests/test_deadhand_rng_service.gd` — GUT tests for seed replay, track isolation, and UID determinism.
 - Purpose: Replace wall-clock UID generation with run-seed–deterministic IDs for replay-safe runs (see `docs/TDD.md` §3.1 RNGService). Autoload registration deferred to W2-5; static flag gates the PrototypeData patch until then.
-- Verified: `godot4 --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/test_deadhand_rng_service.gd -gexit` → `5/5 passed`, exit 0.
+- Verified: `godot4 --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/test_deadhand_rng_service.gd -gexit` → `3/3 passed`, exit 0.
 
-### 2026-06-15: Deadhand data classes (W2-4)
+### 2026-06-15: EventBus + EventLog (W2-2)
 
-- Patch: Added five Deadhand `SerializableData` / `PrototypeData` classes and registered them in `Global.SCHEMA`.
+- Patch: Deadhand pub/sub and JSONL event log autoloads with typed payload resources.
 - Files added:
-  - `data/prototype/DeadhandTaskData.gd`
-  - `data/prototype/DeadhandContestedEncounterData.gd`
-  - `data/readonly/DeadhandHiddenTriggerData.gd`
-  - `data/readonly/DeadhandSetBonusData.gd`
-  - `data/readonly/DeadhandJournalEntryData.gd`
-  - `tests/test_deadhand_data_classes.gd`
+  - `autoload/deadhand_event_bus.gd` — typed signals, emit helpers, STR `Signals.card_drawn` bridge
+  - `autoload/deadhand_event_log.gd` — append-only JSONL to `user://logs/runs/<run_uuid>.jsonl`
+  - `autoload/deadhand_payloads/*.gd` — Resource payloads with `to_dict()` / `from_dict()`
+  - `tests/test_deadhand_event_bus.gd`, `tests/test_deadhand_event_log.gd`
+- Note: Autoload scripts intentionally omit `class_name` (Godot 4 autoload name collision). Use `/root/DeadhandEventBus` etc.
+- Verified: GUT runs for event bus and event log tests pass headlessly.
+
+### 2026-06-15: Deadhand mod overlay + autoload registration (W2-5)
+
+- Patch: Register Deadhand autoloads; mount `external/mods/deadhand/` mod with go/no-go smoke fixtures.
+- Files added:
+  - `external/mods/deadhand/mod_info.json`, `cards/test_5_clubs.json`, `tasks/test_pan_for_gold.json`
+  - `tests/test_deadhand_mod_overlay.gd`
 - Files modified:
-  - `autoload/Global.gd` — SCHEMA entries, lookup tables, and getters for all five classes
-- Purpose: Wave 2 data layer for Deadhand tasks, contested encounters, hidden triggers, set bonuses, and journal entries.
-- Verified: `godot4 --headless --path . --quit-after 60`, then GUT run of `tests/test_deadhand_data_classes.gd`.
+  - `project.godot` — `[autoload]` entries for `DeadhandEventBus`, `DeadhandEventLog`, `DeadhandRNGService`
+  - `external/mod_list.json` — enable deadhand mod at load_priority 100
+  - `data/PrototypeData.gd` — preload-based RNGService hook (no `class_name` collision)
+- Verified: `godot4 --headless --path . --quit-after 60` exit 0; full GUT suite 23/23 pass; mod card/task loaded; EventLog captures boot JSONL.

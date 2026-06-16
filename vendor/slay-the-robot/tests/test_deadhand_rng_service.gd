@@ -9,13 +9,13 @@ func before_each() -> void:
 	DeadhandRNGServiceScript.reset_fallback_for_tests()
 
 
-func _make_service(seed: int) -> DeadhandRNGService:
+func _make_service(seed: int):
 	var service := DeadhandRNGServiceScript.new()
 	service.set_run_seed(seed)
 	return service
 
 
-func _collect_rolls(service: DeadhandRNGService, track_name: String, count: int) -> Array[int]:
+func _collect_rolls(service, track_name: String, count: int) -> Array[int]:
 	var rolls: Array[int] = []
 	for _i in count:
 		rolls.append(service.roll(track_name, 1000))

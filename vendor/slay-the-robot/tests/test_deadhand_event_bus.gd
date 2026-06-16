@@ -3,15 +3,15 @@ extends GutTest
 const EventBusScript = preload("res://autoload/deadhand_event_bus.gd")
 
 
-func _make_bus() -> DeadhandEventBus:
-	var bus: DeadhandEventBus = EventBusScript.new()
+func _make_bus():
+	var bus = EventBusScript.new()
 	add_child_autofree(bus)
 	await get_tree().process_frame
 	return bus
 
 
 func test_emit_card_drawn_emits_payload() -> void:
-	var bus: DeadhandEventBus = await _make_bus()
+	var bus = await _make_bus()
 	var received: Array = []
 	bus.card_drawn.connect(func(payload: CardDrawnPayload) -> void:
 		received.append(payload)
@@ -88,7 +88,7 @@ func test_bridged_str_signal_payload_round_trip() -> void:
 
 
 func test_emit_rng_rolled_emits_payload() -> void:
-	var bus: DeadhandEventBus = await _make_bus()
+	var bus = await _make_bus()
 	var received: Array = []
 	bus.rng_rolled.connect(func(payload: RNGRolledPayload) -> void:
 		received.append(payload)

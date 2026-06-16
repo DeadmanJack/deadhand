@@ -16,7 +16,6 @@
 #   - Mutate gameplay state.
 #   - Persist across runs without explicit start_run().
 extends Node
-class_name DeadhandEventLog
 
 signal log_committed(seq: int)
 
@@ -25,7 +24,7 @@ var seq: int = 0
 var _run_start_ms: int = 0
 var _log_path: String = ""
 var _line_count: int = 0
-var _bus: DeadhandEventBus
+var _bus: Node
 
 const LOG_DIR := "user://logs/runs/"
 
@@ -42,11 +41,13 @@ const BUS_SIGNALS: Array[String] = [
 
 func _ready() -> void:
 	var bus: Node = get_node_or_null("/root/DeadhandEventBus")
-	if bus is DeadhandEventBus:
+	if bus != null and bus.has_method("bind_event_bus") == false and bus.has_signal("card_drawn"):
 		bind_event_bus(bus)
+	if _log_path.is_empty():
+		start_run(0)
 
 
-func bind_event_bus(bus: DeadhandEventBus) -> void:
+func bind_event_bus(bus: Node) -> void:
 	_bus = bus
 	if _bus == null:
 		return
@@ -55,15 +56,15 @@ func bind_event_bus(bus: DeadhandEventBus) -> void:
 			_bus.connect(sig_name, _on_bus_signal.bind(sig_name))
 
 
-func start_run(seed: int, starter_deck_id: String = "default") -> void:
-	run_uuid = "%d-%d" % [seed, Time.get_ticks_msec()]
+func start_run(new_seed: int, starter_deck_id: String = "default") -> void:
+	run_uuid = "%d-%d" % [new_seed, Time.get_ticks_msec()]
 	seq = 0
 	_line_count = 0
 	_run_start_ms = Time.get_ticks_msec()
 	DirAccess.make_dir_recursive_absolute(LOG_DIR)
 	_log_path = LOG_DIR + run_uuid + ".jsonl"
 	var started := RunStartedPayload.new()
-	started.seed = seed
+	started.seed = new_seed
 	started.starter_deck_id = starter_deck_id
 	started.run_uuid = run_uuid
 	_log_event("run_started", started.to_dict())

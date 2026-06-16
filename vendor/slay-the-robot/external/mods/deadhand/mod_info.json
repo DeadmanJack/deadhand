@@ -1,0 +1,49 @@
+{
+	"patch_data": {
+
+	},
+	"properties": {
+		"mod_author": "DeadmanJack",
+		"mod_dependency_mod_ids": [],
+		"mod_description": "Deadhand core mod overlay — data classes, test content, and go/no-go smoke fixtures.",
+		"mod_folder_to_load_data": {
+			"external/mods/deadhand/cards/": {
+				"class_name": "CardData",
+				"table_name": "_id_to_card_data"
+			},
+			"external/mods/deadhand/tasks/": {
+				"class_name": "DeadhandTaskData",
+				"table_name": "_id_to_deadhand_task_data"
+			},
+			"external/mods/deadhand/contested_encounters/": {
+				"class_name": "DeadhandContestedEncounterData",
+				"table_name": "_id_to_deadhand_contested_encounter_data"
+			},
+			"external/mods/deadhand/hidden_triggers/": {
+				"class_name": "DeadhandHiddenTriggerData",
+				"table_name": "_id_to_deadhand_hidden_trigger_data"
+			},
+			"external/mods/deadhand/set_bonuses/": {
+				"class_name": "DeadhandSetBonusData",
+				"table_name": "_id_to_deadhand_set_bonus_data"
+			},
+			"external/mods/deadhand/journal_entries/": {
+				"class_name": "DeadhandJournalEntryData",
+				"table_name": "_id_to_deadhand_journal_entry_data"
+			}
+		},
+		"mod_game_version": {
+			"major": 0,
+			"minor": 0,
+			"patch": 0
+		},
+		"mod_name": "Deadhand",
+		"mod_version": {
+			"major": 0,
+			"minor": 1,
+			"patch": 0
+		},
+		"mod_script_file_paths": {},
+		"object_id": "mod_data_deadhand"
+	}
+}

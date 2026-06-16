@@ -1,0 +1,22 @@
+{
+	"patch_data": {
+
+	},
+	"properties": {
+		"object_id": "test_pan_for_gold",
+		"object_uid": "",
+		"task_name": "Pan for Gold",
+		"task_location_id": "creek",
+		"task_primary_suit": "diamonds",
+		"task_difficulty_class": 12,
+		"task_available_phases": ["morning", "afternoon"],
+		"task_action_cost": 1,
+		"task_reward_money_min": 1,
+		"task_reward_money_max": 4,
+		"task_reward_loot_table_id": "",
+		"task_notoriety_delta": 0,
+		"task_on_success_actions": [],
+		"task_on_failure_actions": [],
+		"task_flavor_text": "The creek runs cold. So does the gold."
+	}
+}

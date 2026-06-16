@@ -23,7 +23,6 @@
 #   - Mutate RunState or any gameplay module directly.
 #   - Replace STR's Signals autoload.
 extends Node
-class_name DeadhandEventBus
 
 signal card_drawn(payload: CardDrawnPayload)
 signal card_played(payload: CardPlayedPayload)
@@ -188,9 +187,9 @@ func emit_set_bonus_deactivated(set_id: String, bonus_id: String) -> void:
 	set_bonus_deactivated.emit(payload)
 
 
-func emit_run_started(seed: int, starter_deck_id: String = "default", run_uuid: String = "") -> void:
+func emit_run_started(new_seed: int, starter_deck_id: String = "default", run_uuid: String = "") -> void:
 	var payload := RunStartedPayload.new()
-	payload.seed = seed
+	payload.seed = new_seed
 	payload.starter_deck_id = starter_deck_id
 	payload.run_uuid = run_uuid
 	run_started.emit(payload)

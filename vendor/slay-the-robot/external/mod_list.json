@@ -12,7 +12,10 @@
 				"enabled": false,
 				"load_priority": 1
 			},
-			
+			"external/mods/deadhand/": {
+				"enabled": true,
+				"load_priority": 100
+			}
 		},
 		"object_id": "mod_list"
 	}

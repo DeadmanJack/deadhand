@@ -39,6 +39,9 @@ DebugLogger="*res://autoload/DebugLogger.gd"
 HandManager="*res://autoload/HandManager.gd"
 SoundManager="*uid://bjkhgdroa1wwd"
 StatsHandler="*res://autoload/StatsHandler.gd"
+DeadhandEventBus="*res://autoload/deadhand_event_bus.gd"
+DeadhandEventLog="*res://autoload/deadhand_event_log.gd"
+DeadhandRNGService="*res://autoload/deadhand_rng_service.gd"
 
 [debug]
 
