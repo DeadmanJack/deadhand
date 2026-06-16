@@ -53,3 +53,6 @@ jobs:
 
       - name: Slay-The-Robot vendor headless import
         run: godot --headless --path vendor/slay-the-robot/ --import
+
+      - name: Run GUT smoke tests
+        run: godot --headless --path vendor/slay-the-robot/ -s addons/gut/gut_cmdln.gd -gtest=res://tests/test_gut_smoke.gd -gexit
