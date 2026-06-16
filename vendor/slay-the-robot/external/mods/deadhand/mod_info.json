@@ -11,6 +11,10 @@
 				"class_name": "CardData",
 				"table_name": "_id_to_card_data"
 			},
+			"external/mods/deadhand/card_packs/": {
+				"class_name": "CardPackData",
+				"table_name": "_id_to_card_pack_data"
+			},
 			"external/mods/deadhand/tasks/": {
 				"class_name": "DeadhandTaskData",
 				"table_name": "_id_to_deadhand_task_data"

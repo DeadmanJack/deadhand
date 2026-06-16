@@ -119,3 +119,28 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
   - `autoload/deadhand_event_log.gd` — log `notoriety_threshold_crossed` events
   - `project.godot` — `[autoload]` entry for `DeadhandNotorietyTracker` (after `DeadhandPhaseClock`)
 - Verified: `godot4 --headless --path . --import`, then GUT run of `tests/test_deadhand_notoriety_tracker.gd`.
+
+### 2026-06-15: RunState + PhaseClock autoloads (W3-1)
+
+- Patch: Core run field ownership and four-phase day cycle with forced rest at end of night.
+- Files added:
+  - `autoload/deadhand_run_state.gd` — day, phase, money, wounds, action budget; emits via DeadhandEventBus
+  - `autoload/deadhand_phase_clock.gd` — M→A→E→N cycle, rest_forced, day_advanced
+  - `tests/test_deadhand_run_state.gd`, `tests/test_deadhand_phase_clock.gd`
+- Files modified:
+  - `project.godot` — `[autoload]` entries for `DeadhandRunState`, `DeadhandPhaseClock`
+- Verified: GUT runs for run state and phase clock tests pass headlessly.
+
+### 2026-06-15: Vertical slice content + integration smoke test (W3-5)
+
+- Patch: Rob a Grave task JSON, Town Drunk deck template, vertical slice integration test; fix RNG service GUT parse error (`seed` parameter rename).
+- Files added:
+  - `external/mods/deadhand/tasks/task_rob_grave.json` — Cemetery, night-only, hearts DC 11, +1 notoriety on success
+  - `external/mods/deadhand/card_packs/deck_town_drunk.json` — opponent spades pool for Town Drunk encounter
+  - `tests/test_deadhand_vertical_slice.gd` — content load, autoload phase cycle, notoriety, contested runner, EventLog smoke
+- Files modified:
+  - `external/mods/deadhand/mod_info.json` — register `card_packs/` folder for CardPackData
+  - `autoload/deadhand_event_log.gd` — only auto-bind EventBus when running as root autoload (fixes GUT isolation)
+  - `tests/test_deadhand_rng_service.gd` — rename `seed` parameter to `run_seed` (Godot 4 reserved name parse fix); reset autoload RNG state in UID test
+- Purpose: Wave 3B go/no-go gate — Cemetery task + Town Drunk duel + module wiring verified end-to-end.
+- Verified: `godot4 --headless --path . --quit-after 60` exit 0; full GUT suite pass including vertical slice and RNG tests.

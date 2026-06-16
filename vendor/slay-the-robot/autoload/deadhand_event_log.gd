@@ -40,6 +40,8 @@ const BUS_SIGNALS: Array[String] = [
 
 
 func _ready() -> void:
+	if not is_inside_tree() or get_parent() != get_tree().root:
+		return
 	var bus: Node = get_node_or_null("/root/DeadhandEventBus")
 	if bus != null and bus.has_method("bind_event_bus") == false and bus.has_signal("card_drawn"):
 		bind_event_bus(bus)

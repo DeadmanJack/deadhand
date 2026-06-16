@@ -7,11 +7,12 @@ func before_each() -> void:
 	DeadhandRNGServiceScript.use_deterministic_uids = false
 	DeadhandRNGServiceScript.deterministic_run_seed = 0
 	DeadhandRNGServiceScript.reset_fallback_for_tests()
+	get_node("/root/DeadhandRNGService").set_run_seed(0)
 
 
-func _make_service(seed: int):
+func _make_service(run_seed: int) -> Node:
 	var service := DeadhandRNGServiceScript.new()
-	service.set_run_seed(seed)
+	service.set_run_seed(run_seed)
 	return service
 
 
@@ -41,12 +42,14 @@ func test_uid_determinism() -> void:
 	DeadhandRNGServiceScript.use_deterministic_uids = true
 	DeadhandRNGServiceScript.deterministic_run_seed = 42
 	DeadhandRNGServiceScript.reset_fallback_for_tests()
+	get_node("/root/DeadhandRNGService").set_run_seed(42)
 
 	var card_a := CardData.new()
 	var uid_a: String = PrototypeData.generate_unique_id(card_a)
 
 	DeadhandRNGServiceScript.reset_fallback_for_tests()
 	DeadhandRNGServiceScript.deterministic_run_seed = 42
+	get_node("/root/DeadhandRNGService").set_run_seed(42)
 
 	var card_b := CardData.new()
 	var uid_b: String = PrototypeData.generate_unique_id(card_b)

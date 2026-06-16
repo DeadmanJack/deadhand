@@ -1,0 +1,20 @@
+{
+	"patch_data": {},
+	"properties": {
+		"object_id": "deck_town_drunk",
+		"object_uid": "",
+		"card_pack_card_ids": [
+			"2_spades",
+			"3_spades",
+			"4_spades",
+			"5_spades",
+			"6_spades",
+			"7_spades"
+		],
+		"card_pack_color_id": "",
+		"exclude_non_standard_rarities": true,
+		"exclude_non_standard_types": true,
+		"card_pack_validators": [],
+		"card_pack_displays_in_codex": false
+	}
+}

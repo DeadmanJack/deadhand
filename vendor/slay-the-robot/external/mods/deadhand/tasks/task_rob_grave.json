@@ -1,0 +1,34 @@
+{
+	"patch_data": {},
+	"properties": {
+		"object_id": "task_rob_grave",
+		"object_uid": "",
+		"task_name": "Rob a Grave",
+		"task_location_id": "location_cemetery",
+		"task_primary_suit": "hearts",
+		"task_difficulty_class": 11,
+		"task_available_phases": ["night"],
+		"task_action_cost": 1,
+		"task_reward_money_min": 3,
+		"task_reward_money_max": 8,
+		"task_reward_loot_table_id": "loot_rob_grave_basic",
+		"task_notoriety_delta": 1,
+		"task_on_success_actions": [
+			{
+				"res://game/scripts/actions/deadhand/ActionDeadhandGrantTaskRewards.gd": {}
+			}
+		],
+		"task_on_failure_actions": [
+			{
+				"res://game/scripts/actions/deadhand/ActionDeadhandWound.gd": { "amount": 1 }
+			},
+			{
+				"res://game/scripts/actions/deadhand/ActionDeadhandDrawEncounter.gd": {
+					"encounter_id": "encounter_empty_grave",
+					"weight": 0.5
+				}
+			}
+		],
+		"task_flavor_text": "The soil here is loose. Recent work."
+	}
+}

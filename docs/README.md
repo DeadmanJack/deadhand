@@ -41,5 +41,5 @@ Install location: `~/.local/bin/godot4` (or wherever your PATH expects it).
 - [x] Repos live on Forgejo + GitHub; CI scaffolded
 - [x] **Wave 1 complete:** GUT 9.6.0, STR schema reference (`docs/cards/STR_SCHEMA_REFERENCE.md`)
 - [x] **Wave 2 complete:** TDD §9 rewritten; 5 data classes + `Global.gd` patch; EventBus + EventLog + RNGService autoloads; mod overlay go/no-go gate passed (23/23 GUT tests)
-- [ ] **Wave 3:** Contested encounter runner, PhaseClock/Notoriety modules, real card JSON from CARDS.md, full STR→EventBus bridging
-- [ ] Vertical slice scaffolded (Saloon + Cemetery + one duel + Mose)
+- [x] **Wave 3 complete:** RunState, PhaseClock, NotorietyTracker, ContestedEncounterRunner, starter deck JSON, STR→EventBus bridge; vertical slice gate passed
+- [x] Vertical slice scaffolded (Cemetery task + Town Drunk duel + module integration smoke test)
