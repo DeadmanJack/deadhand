@@ -40,7 +40,10 @@ Install location: `~/.local/bin/godot4` (or wherever your PATH expects it).
 - [x] Root `.gitignore` written
 - [x] Repos created and initial commit pushed: [Forgejo (primary)](https://git.massivedark.com/deadmanjack/deadhand) and [GitHub (mirror)](https://github.com/DeadmanJack/deadhand)
 - [x] `.forgejo/workflows/ci.yml` scaffolded for Godot 4.6 (docs inventory + STR vendor headless import)
-- [ ] GUT test framework installed in `game/addons/gut/`
-- [ ] First mod-overlay roundtrip (one card, one task, one shop entry) — go/no-go gate
-- [ ] Rewrite TDD §9 JSON schemas against STR's real `CardData` property surface
+- [x] **Wave 1 complete:** GUT 9.6.0 installed at `vendor/slay-the-robot/addons/gut/`, smoke test passes 2/2 headlessly, wired into CI
+- [x] **Wave 1 complete:** STR schema fully inspected, canonical reference at `docs/cards/STR_SCHEMA_REFERENCE.md` (622 lines)
+- [ ] Rewrite TDD §9 JSON schemas against STR's real `CardData` property surface (Wave 2)
+- [ ] Decide: edit `Global.gd` to register Deadhand data classes, or store everything in `card_values`/`player_values` (Wave 2)
+- [ ] EventBus + EventLog + RNGService autoloads built on top of STR's existing `Signals` and `Random` (Wave 2)
+- [ ] First mod-overlay roundtrip (one card, one task, one shop entry) — go/no-go gate (Wave 3)
 - [ ] Vertical slice scaffolded
