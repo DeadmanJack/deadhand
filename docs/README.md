@@ -32,18 +32,14 @@ Install location: `~/.local/bin/godot4` (or wherever your PATH expects it).
 - [x] GDD v0.1 drafted
 - [x] TDD v0.1 drafted with modules + event bus + CLI harness + STR integration plan
 - [x] ADR 0001: Slay-The-Robot chosen as framework foundation
+- [x] ADR 0002: Five Deadhand data classes registered in `Global.SCHEMA` (Option C — full class fork)
 - [x] BACKLOG.md established
-- [x] Slay-The-Robot vendored at `vendor/slay-the-robot/` (commit `6feee71`, `VERSION_PIN.md` written, nested `.git/` and `.github/` removed per snapshot vendoring policy)
-- [x] Godot **4.6.stable** installed at `~/.local/bin/godot4` (previous 4.3 backed up as `godot4_4.3`)
-- [x] STR imports cleanly under 4.6 (headless `--import` and `--quit-after 60` both pass; only benign UID-fallback warnings)
-- [x] CARDS.md drafted (78 cards + 6 clothing + 5 sets; ambiguities resolved in Appendix A)
-- [x] Root `.gitignore` written
-- [x] Repos created and initial commit pushed: [Forgejo (primary)](https://git.massivedark.com/deadmanjack/deadhand) and [GitHub (mirror)](https://github.com/DeadmanJack/deadhand)
-- [x] `.forgejo/workflows/ci.yml` scaffolded for Godot 4.6 (docs inventory + STR vendor headless import)
-- [x] **Wave 1 complete:** GUT 9.6.0 installed at `vendor/slay-the-robot/addons/gut/`, smoke test passes 2/2 headlessly, wired into CI
-- [x] **Wave 1 complete:** STR schema fully inspected, canonical reference at `docs/cards/STR_SCHEMA_REFERENCE.md` (622 lines)
-- [ ] Rewrite TDD §9 JSON schemas against STR's real `CardData` property surface (Wave 2)
-- [ ] Decide: edit `Global.gd` to register Deadhand data classes, or store everything in `card_values`/`player_values` (Wave 2)
-- [ ] EventBus + EventLog + RNGService autoloads built on top of STR's existing `Signals` and `Random` (Wave 2)
-- [ ] First mod-overlay roundtrip (one card, one task, one shop entry) — go/no-go gate (Wave 3)
-- [ ] Vertical slice scaffolded
+- [x] Slay-The-Robot vendored at `vendor/slay-the-robot/` (commit `6feee71`, `VERSION_PIN.md` patch ledger, no upstream re-merge)
+- [x] Godot **4.6.stable** installed at `~/.local/bin/godot4`
+- [x] STR imports cleanly under 4.6
+- [x] CARDS.md drafted (78 cards + 6 clothing + 5 sets)
+- [x] Repos live on Forgejo + GitHub; CI scaffolded
+- [x] **Wave 1 complete:** GUT 9.6.0, STR schema reference (`docs/cards/STR_SCHEMA_REFERENCE.md`)
+- [x] **Wave 2 complete:** TDD §9 rewritten; 5 data classes + `Global.gd` patch; EventBus + EventLog + RNGService autoloads; mod overlay go/no-go gate passed (23/23 GUT tests)
+- [ ] **Wave 3:** Contested encounter runner, PhaseClock/Notoriety modules, real card JSON from CARDS.md, full STR→EventBus bridging
+- [ ] Vertical slice scaffolded (Saloon + Cemetery + one duel + Mose)

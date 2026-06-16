@@ -4,8 +4,8 @@ Deadhand is a dark-fantasy western card-game roguelike set in the cursed 1800s
 border town of Deadhand, TX. Runs are 30-60 minutes: a lone hunter walks a
 fixed map, picks fights with branching cursed encounters, and tunes a small
 deck of revolver shots, hex-iron tools, and ritual cards against a final
-boss. This repository is currently pre-prototype: design docs plus a vendored
-Slay-The-Robot snapshot used as a Godot 4 card-framework reference.
+boss. Wave 2 foundation is in place: Deadhand data classes, autoloads, and a
+mod-overlay smoke test all live inside the vendored STR project tree.
 
 ## Requirements
 
@@ -16,9 +16,9 @@ Slay-The-Robot snapshot used as a Godot 4 card-framework reference.
 ## Repository Layout
 
 - `docs/` - GDD, TDD, BACKLOG, ADRs, canonical card list
-- `vendor/slay-the-robot/` - vendored STR card-engine reference (Godot 4.6,
-  commit `6feee71`)
-- `game/` - Godot 4.6 project root (lands during prototyping; not yet present)
+- `vendor/slay-the-robot/` - vendored STR fork (Godot 4.6, commit `6feee71`) +
+  Deadhand autoloads, data classes, mod overlay at `external/mods/deadhand/`
+- `game/` - deferred separate Godot root (not used; all code in vendor tree for now)
 
 ## Run Slay-The-Robot Locally
 
@@ -28,6 +28,7 @@ we intend to lift into `game/`. Useful invocations:
 - Play STR: `godot4 --path vendor/slay-the-robot/`
 - Open in editor: `godot4 -e --path vendor/slay-the-robot/`
 - Headless import smoke: `godot4 --headless --path vendor/slay-the-robot/ --import`
+- GUT tests: `godot4 --headless --path vendor/slay-the-robot/ -s addons/gut/gut_cmdln.gd -gdir=res://tests/ -gexit`
 
 ## Documentation Map
 
