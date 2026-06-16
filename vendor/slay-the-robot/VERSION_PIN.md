@@ -131,6 +131,17 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
   - `project.godot` — `[autoload]` entries for `DeadhandRunState`, `DeadhandPhaseClock`
 - Verified: GUT runs for run state and phase clock tests pass headlessly.
 
+### 2026-06-16: ResolutionEngine autoload (W4-1)
+
+- Patch: Solo skill-check resolution math with suit matching, off-suit halving, and critical success at +5 over DC.
+- Files added:
+  - `autoload/deadhand_resolution_engine.gd` — `resolve_solo_check`, `resolve_and_emit`; emits `check_resolved` via DeadhandEventBus
+  - `tests/test_deadhand_resolution_engine.gd` — success/fail/off-suit/critical/joker + emit wiring
+- Files modified:
+  - `project.godot` — `[autoload]` entry for `DeadhandResolutionEngine` (after `DeadhandNotorietyTracker`)
+- Purpose: Wave 4 solo task skill-check math per GDD §4.1 and TDD §3.1 ResolutionEngine row.
+- Verified: `godot4 --headless --path . --import`; GUT run of `tests/test_deadhand_resolution_engine.gd`; headless boot exit 0.
+
 ### 2026-06-15: Vertical slice content + integration smoke test (W3-5)
 
 - Patch: Rob a Grave task JSON, Town Drunk deck template, vertical slice integration test; fix RNG service GUT parse error (`seed` parameter rename).
