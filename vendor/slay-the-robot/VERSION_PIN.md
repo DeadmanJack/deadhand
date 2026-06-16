@@ -37,3 +37,12 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
   - `project.godot` — added `res://addons/gut/plugin.cfg` to `[editor_plugins] enabled` PackedStringArray
 - Purpose: Test framework for Deadhand modules (see `docs/TDD.md` §14). Deadhand code runs in STR's project context as a mod overlay, so the addon must live inside the STR project, not the (deferred) `game/` overlay.
 - Verified: `godot4 --headless --path . --import` (one-time class_name registration), then `godot4 --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/test_gut_smoke.gd -gexit` → `2/2 passed`, exit 0.
+
+### 2026-06-15: PrototypeData deterministic UID override (W2-3)
+
+- Patch: `data/PrototypeData.gd` — `generate_unique_id()` checks `DeadhandRNGService.use_deterministic_uids` and delegates to `DeadhandRNGService.generate_uid_static()` before wall-clock logic.
+- Files added:
+  - `autoload/deadhand_rng_service.gd` — seeded per-track RNG service with deterministic UID generation.
+  - `tests/test_deadhand_rng_service.gd` — GUT tests for seed replay, track isolation, and UID determinism.
+- Purpose: Replace wall-clock UID generation with run-seed–deterministic IDs for replay-safe runs (see `docs/TDD.md` §3.1 RNGService). Autoload registration deferred to W2-5; static flag gates the PrototypeData patch until then.
+- Verified: `godot4 --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/test_deadhand_rng_service.gd -gexit` → `5/5 passed`, exit 0.

@@ -13,6 +13,8 @@ class_name PrototypeData
 static var unique_id_counter = 0
 
 static func generate_unique_id(prototype_data: PrototypeData) -> String:
+	if DeadhandRNGService.use_deterministic_uids:
+		return DeadhandRNGService.generate_uid_static(prototype_data)
 	var prefix: String = prototype_data.get_unique_id_prefix()
 	unique_id_counter += 1
 	if unique_id_counter >= 10000000:
