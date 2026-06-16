@@ -1,0 +1,58 @@
+Deadhand Card Game — Original Brief
+Captured: 2026-06-15
+
+Engine: Godot (reference setup: ~/projects/throw-fight)
+Art: 1800s card art
+
+Pitch:
+Dark fantasy. 1800s small Texas town called Deadhand, TX. The mayor is evil —
+throwing people in jail for nothing, hanging innocents, terrorizing the town
+quietly and sneakily. You start with $2 and need to make money.
+
+Player actions: rob graves, mine for gold, hold up stage coaches, rob banks,
+fish, duels, etc.
+
+The player isn't necessarily a good person — but the mayor is worse.
+
+Economy:
+- Sell at the local store
+- Saloon sells drinks with various buffs / curses
+- Buy clothes for bonuses & penalties (e.g. duster intimidates duel opponent
+  to fire slower / less accurately)
+
+Card philosophy:
+- Everything is card-based
+- Cards are simple: numbers and text (like a regular deck)
+- Special cards mixed in (encounters, items, like Monopoly Chance cards)
+- Hand of mostly number cards + some face cards
+- Choose a task and play cards from hand to execute it
+- Plays like a mix of MtG + poker/blackjack but simpler than MtG
+- Items/cards earned by completing tasks & encounters
+- Draw from "items" pile after wins
+- Encounter cards (e.g. duels) interrupt or are chosen
+
+Goal: gain enough wealth + items to defeat the mayor.
+
+Tone & inspiration:
+- Has the feeling of a mini D&D campaign run by a friend
+- Card game format keeps it simple, no animation bloat
+- Easy to play, story-rich
+
+Constraints:
+- Ship quickly
+- Solid and fun
+- Simple but engaging
+- Mysterious storytelling (Dark Souls / Hyper Light Drifter): very little
+  dialogue, lore through flavor text on cards and item descriptions
+- 2 NPCs (small interactions, not full RPG quest chains)
+- Possibly outskirt areas but no travel between full towns
+- No huge backstories — keep scope tight
+
+Design decisions made on 2026-06-15:
+- Resolution: D&D-style skill checks (sum cards against difficulty class)
+- Run structure: Roguelike (one run from $2 → mayor; permanent unlocks between)
+- Deck: Deckbuilder (items/clothing/drinks add cards to your deck)
+- Contested encounters: Opponent draws cards too (head-to-head)
+- Scope: Lean MVP — Deadhand town + outskirts + 2 NPCs + tight content set
+
+See docs/GDD.md for the full design.

@@ -1,0 +1,55 @@
+# Deadhand CI (Forgejo Actions, primary CI).
+#
+# Pre-prototype scope: docs + vendored Slay-The-Robot only. When the `game/`
+# Godot 4.6 project lands, this workflow will gain steps mirroring the
+# throw-fight project's CI:
+#   - `godot4 --headless --path ./game --import`
+#   - `godot4 --headless --path ./game --script res://tools/ci/smoke_tests.gd`
+#   - `godot4 --headless --path ./game --export-release "Linux/X11" ...`
+# Plus a Python resource validator once `tools/scripts/validate_resources.py`
+# exists.
+
+name: Deadhand CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  validate-and-smoke:
+    name: Deadhand CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: "4.6.0"
+          include-templates: true
+
+      - name: Docs sanity (inventory)
+        run: |
+          set -euo pipefail
+          echo "Listing markdown docs under docs/ ..."
+          find docs/ -name '*.md' -print
+          # Require the critical design docs to exist.
+          test -f docs/GDD.md
+          test -f docs/TDD.md
+          test -f docs/BACKLOG.md
+          test -f docs/cards/CARDS.md
+
+      - name: Slay-The-Robot vendor headless import
+        run: godot --headless --path vendor/slay-the-robot/ --import

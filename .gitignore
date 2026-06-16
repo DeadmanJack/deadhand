@@ -1,0 +1,27 @@
+# Godot 4
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+*.translation
+
+# Godot per-user state
+*.tmp
+
+# Vendor: Slay-The-Robot engine cache (regenerated on first import)
+vendor/slay-the-robot/.godot/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs (run event logs are user-data, not source)
+user/
+logs/
+
+# Build artifacts
+build/
+dist/

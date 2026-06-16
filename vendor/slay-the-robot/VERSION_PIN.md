@@ -1,0 +1,29 @@
+# Vendor Version Pin: Slay-The-Robot
+
+Date: 2026-06-15
+Status: Pinned
+
+## Upstream
+
+- Repo: https://github.com/DesirePathGames/Slay-The-Robot
+- Pinned commit: `6feee71acff1a8e26805aba3bc4440b1078cd7c7`
+
+## Engine
+
+- Required: **Godot 4.6.stable** (project.godot declares `config/features=PackedStringArray("4.6")` and uses typed `Dictionary[K,V]` syntax that requires Godot 4.4+).
+- Verified against:
+
+  ```
+  4.6.stable.official.89cea1439
+  ```
+
+## Import Verification
+
+Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
+
+- `godot4 --headless --import` — no parse errors. Warnings about a stale `uid://nh32y87hcke5` pointing at `res://icon.svg` are emitted by the engine but auto-resolved to the text path; no action required.
+- `godot4 --headless --quit-after 60` — all autoloads (`Scenes.gd`, `FileLoader.gd`, etc.) compile and initialize. The main scene loads. Only benign warnings remain (UID fallbacks, ObjectDB leak-at-exit notice, and a `missing_texture.png` "loaded as image file" note tied to `FileLoader`'s runtime asset loading path).
+
+## Patches Applied
+
+None yet.
