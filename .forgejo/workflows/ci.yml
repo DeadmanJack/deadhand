@@ -1,13 +1,12 @@
 # Deadhand CI (Forgejo Actions, primary CI).
 #
-# Pre-prototype scope: docs + vendored Slay-The-Robot only. When the `game/`
-# Godot 4.6 project lands, this workflow will gain steps mirroring the
-# throw-fight project's CI:
-#   - `godot4 --headless --path ./game --import`
-#   - `godot4 --headless --path ./game --script res://tools/ci/smoke_tests.gd`
-#   - `godot4 --headless --path ./game --export-release "Linux/X11" ...`
-# Plus a Python resource validator once `tools/scripts/validate_resources.py`
-# exists.
+# Forgejo (git.massivedark.com) mirrors only actions/* — third-party actions like
+# chickensoft-games/setup-godot are unavailable. Checkout and setup-python use
+# fully qualified Forgejo URLs; Godot 4.6-stable is installed from the official
+# Godot CDN (see Install Godot step).
+#
+# Validates docs inventory, STR vendor headless import, and full GUT suite under
+# vendor/slay-the-robot/.
 
 name: Deadhand CI
 
@@ -21,38 +20,57 @@ on:
       - develop
       - main
 
+env:
+  GODOT_VERSION: "4.6-stable"
+  GODOT_DIR: "${{ github.workspace }}/.ci/godot"
+
 jobs:
   validate-and-smoke:
     name: Deadhand CI
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: https://code.forgejo.org/actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: https://code.forgejo.org/actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Setup Godot
-        uses: chickensoft-games/setup-godot@v2
-        with:
-          version: "4.6.0"
-          include-templates: true
+      - name: Install Godot
+        run: |
+          set -euo pipefail
+          mkdir -p "$GODOT_DIR"
+          ARCHIVE="Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          URL="https://downloads.godotengine.org/?version=4.6&flavor=stable&slug=linux.x86_64.zip&platform=linux.64"
+          echo "Downloading Godot ${GODOT_VERSION} from official CDN ..."
+          curl -fsSL -o "/tmp/${ARCHIVE}" "${URL}"
+          unzip -q "/tmp/${ARCHIVE}" -d "$GODOT_DIR"
+          GODOT_BIN="$GODOT_DIR/Godot_v${GODOT_VERSION}_linux.x86_64"
+          chmod +x "$GODOT_BIN"
+          ln -sf "$GODOT_BIN" "$GODOT_DIR/godot"
+          echo "$GODOT_DIR" >> "$GITHUB_PATH"
+          godot --version
 
       - name: Docs sanity (inventory)
         run: |
           set -euo pipefail
           echo "Listing markdown docs under docs/ ..."
           find docs/ -name '*.md' -print
-          # Require the critical design docs to exist.
           test -f docs/GDD.md
           test -f docs/TDD.md
           test -f docs/BACKLOG.md
           test -f docs/cards/CARDS.md
 
       - name: Slay-The-Robot vendor headless import
-        run: godot --headless --path vendor/slay-the-robot/ --import
+        run: |
+          set -euo pipefail
+          godot --headless --path vendor/slay-the-robot/ --import
 
-      - name: Run GUT smoke tests
-        run: godot --headless --path vendor/slay-the-robot/ -s addons/gut/gut_cmdln.gd -gtest=res://tests/test_gut_smoke.gd -gexit
+      - name: Run GUT tests
+        run: |
+          set -euo pipefail
+          godot --headless --path vendor/slay-the-robot/ \
+            -s addons/gut/gut_cmdln.gd \
+            -gdir=res://tests/ \
+            -gexit

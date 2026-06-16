@@ -27,6 +27,8 @@ Read in this order:
 
 Install location: `~/.local/bin/godot4` (or wherever your PATH expects it).
 
+CI runs on Forgejo only (`.forgejo/workflows/ci.yml`); GitHub is a backup mirror with no Actions workflows.
+
 ## Status (as of 2026-06-15)
 
 - [x] GDD v0.1 drafted
