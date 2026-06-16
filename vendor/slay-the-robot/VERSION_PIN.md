@@ -158,3 +158,12 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
   - `project.godot` — `[autoload]` entry for `DeadhandTaskRegistry` (after `DeadhandNotorietyTracker`)
 - Purpose: Wave 4 TaskRegistry module per TDD §3.1 / GDD §7.1 time-of-day restrictions.
 - Verified: `godot4 --headless --path . --import`, then GUT run of `tests/test_deadhand_task_registry.gd`; headless boot exit 0.
+
+### 2026-06-16: Face cards and aces JSON batch (W4-4)
+
+- Patch: Added 12 named face cards and 4 Aces from `docs/cards/CARDS.md` §3–§4.
+- Files added:
+  - `external/mods/deadhand/cards/j_spades_bowie.json` … `a_clubs_drifters_promise.json` — 16 CardData resources
+  - `tests/test_deadhand_face_ace_cards.gd` — Global load assertions for all 16 ids; spot-checks for Bowie face flags and Mayor's Mark ace flag
+- Purpose: Wave 4 content pass — named face/ace cards loadable via mod overlay; play actions deferred to W4-3/W4-5.
+- Verified: `godot4 --headless --path . --import`; GUT run of `tests/test_deadhand_face_ace_cards.gd`.
