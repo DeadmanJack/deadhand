@@ -3,13 +3,14 @@
 # Owns:    Typed signal declarations and emit_* helpers; STR Signals bridge.
 #
 # Consumes events:
-#   - STR Signals.card_drawn (when /root/Signals autoload is present)
+#   - STR Signals.card_drawn, card_played, card_discarded, card_exhausted,
+#     card_added_to_hand, card_created (when /root/Signals autoload is present)
 #
 # Emits events:
 #   - card_drawn, card_played, card_discarded, card_burned
 #   - check_resolved, shot_resolved, encounter_started, encounter_resolved
 #   - phase_advanced, day_advanced, rest_forced
-#   - notoriety_changed, money_changed, loot_rolled
+#   - notoriety_changed, notoriety_threshold_crossed, money_changed, loot_rolled
 #   - hidden_trigger_fired, memory_card_revealed, journal_entry_unlocked
 #   - set_bonus_activated, set_bonus_deactivated
 #   - run_started, run_ended, run_state_changed, rng_rolled, bridged_str_signal
@@ -36,6 +37,7 @@ signal phase_advanced(payload: PhaseAdvancedPayload)
 signal day_advanced(payload: DayAdvancedPayload)
 signal rest_forced(payload: RestForcedPayload)
 signal notoriety_changed(payload: NotorietyChangedPayload)
+signal notoriety_threshold_crossed(payload: NotorietyThresholdCrossedPayload)
 signal money_changed(payload: MoneyChangedPayload)
 signal loot_rolled(payload: LootRolledPayload)
 signal hidden_trigger_fired(payload: HiddenTriggerFiredPayload)
@@ -140,6 +142,13 @@ func emit_notoriety_changed(old_value: int, new_value: int, reason: String = "")
 	notoriety_changed.emit(payload)
 
 
+func emit_notoriety_threshold_crossed(threshold: int, direction: String) -> void:
+	var payload := NotorietyThresholdCrossedPayload.new()
+	payload.threshold = threshold
+	payload.direction = direction
+	notoriety_threshold_crossed.emit(payload)
+
+
 func emit_money_changed(old_value: int, new_value: int, delta: int, reason: String = "") -> void:
 	var payload := MoneyChangedPayload.new()
 	payload.old_value = old_value
@@ -229,14 +238,60 @@ func _bridge_str_signals() -> void:
 	var str_signals: Node = get_node_or_null("/root/Signals")
 	if str_signals == null:
 		return
-	if str_signals.has_signal("card_drawn") and not str_signals.is_connected("card_drawn", _on_str_card_drawn):
-		str_signals.card_drawn.connect(_on_str_card_drawn)
+	_connect_str_signal(str_signals, "card_drawn", _on_str_card_drawn)
+	_connect_str_signal(str_signals, "card_played", _on_str_card_played)
+	_connect_str_signal(str_signals, "card_discarded", _on_str_card_discarded)
+	_connect_str_signal(str_signals, "card_exhausted", _on_str_card_exhausted)
+	_connect_str_signal(str_signals, "card_added_to_hand", _on_str_card_added_to_hand)
+	_connect_str_signal(str_signals, "card_created", _on_str_card_created)
+
+
+func _connect_str_signal(str_signals: Node, signal_name: StringName, handler: Callable) -> void:
+	if str_signals.has_signal(signal_name) and not str_signals.is_connected(signal_name, handler):
+		str_signals.connect(signal_name, handler)
+
+
+func _card_str_args(card: CardData) -> Dictionary:
+	if card == null:
+		return {"object_id": "", "card_name": ""}
+	return {
+		"object_id": card.object_id,
+		"card_name": card.card_name,
+	}
 
 
 func _on_str_card_drawn(card: CardData) -> void:
 	var card_id: String = card.object_id if card != null else ""
 	emit_card_drawn(card_id, "hand")
-	emit_bridged_str_signal("card_drawn", {
-		"object_id": card_id,
-		"card_name": card.card_name if card != null else "",
-	})
+	emit_bridged_str_signal("card_drawn", _card_str_args(card))
+
+
+func _on_str_card_played(card_play_request: CardPlayRequest) -> void:
+	var card: CardData = card_play_request.card_data if card_play_request != null else null
+	var card_id: String = card.object_id if card != null else ""
+	emit_card_played(card_id)
+	emit_bridged_str_signal("card_played", _card_str_args(card))
+
+
+func _on_str_card_discarded(card: CardData, is_manual_discard: bool) -> void:
+	var card_id: String = card.object_id if card != null else ""
+	emit_card_discarded(card_id, is_manual_discard)
+	var str_args := _card_str_args(card)
+	str_args["is_manual_discard"] = is_manual_discard
+	emit_bridged_str_signal("card_discarded", str_args)
+
+
+func _on_str_card_exhausted(card: CardData) -> void:
+	var card_id: String = card.object_id if card != null else ""
+	emit_card_burned(card_id, "exhausted")
+	emit_bridged_str_signal("card_exhausted", _card_str_args(card))
+
+
+func _on_str_card_added_to_hand(card_data: CardData) -> void:
+	var card_id: String = card_data.object_id if card_data != null else ""
+	emit_card_drawn(card_id, "hand")
+	emit_bridged_str_signal("card_added_to_hand", _card_str_args(card_data))
+
+
+func _on_str_card_created(card_data: CardData) -> void:
+	emit_bridged_str_signal("card_created", _card_str_args(card_data))

@@ -32,7 +32,7 @@ const BUS_SIGNALS: Array[String] = [
 	"card_drawn", "card_played", "card_discarded", "card_burned",
 	"check_resolved", "shot_resolved", "encounter_started", "encounter_resolved",
 	"phase_advanced", "day_advanced", "rest_forced",
-	"notoriety_changed", "money_changed", "loot_rolled",
+	"notoriety_changed", "notoriety_threshold_crossed", "money_changed", "loot_rolled",
 	"hidden_trigger_fired", "memory_card_revealed", "journal_entry_unlocked",
 	"set_bonus_activated", "set_bonus_deactivated",
 	"run_started", "run_ended", "rng_rolled", "bridged_str_signal",

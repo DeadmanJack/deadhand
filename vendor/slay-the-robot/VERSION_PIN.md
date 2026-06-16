@@ -85,6 +85,18 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
   - `data/PrototypeData.gd` — preload-based RNGService hook (no `class_name` collision)
 - Verified: `godot4 --headless --path . --quit-after 60` exit 0; full GUT suite 23/23 pass; mod card/task loaded; EventLog captures boot JSONL.
 
+### 2026-06-15: STR bridge expansion + starter deck JSON (W3-4)
+
+- Patch: Expanded `DeadhandEventBus` STR signal bridge; added 24 starter-deck number cards (ranks 2–7 × 4 suits) from `docs/cards/CARDS.md` §2.
+- Files added:
+  - `external/mods/deadhand/cards/{rank}_{suit}.json` — 24 starter cards (`2_spades` … `7_clubs`)
+  - `tests/test_deadhand_str_bridge.gd` — bridge connection + forwarding checks
+  - `tests/test_deadhand_starter_cards.gd` — Global load assertions for all 24 ids
+- Files modified:
+  - `autoload/deadhand_event_bus.gd` — bridge `card_played`, `card_discarded`, `card_exhausted`, `card_added_to_hand`, `card_created` (plus existing `card_drawn`)
+- Purpose: Wire STR hand events into Deadhand EventBus; load canonical starter deck content for Wave 3 vertical slice.
+- Verified: `godot4 --headless --path . --import`; GUT runs for `test_deadhand_starter_cards.gd` and `test_deadhand_str_bridge.gd` pass headlessly.
+
 ### 2026-06-15: ContestedEncounterRunner state machine (W3-3)
 
 - Patch: Head-to-head contested encounter runner with 3-round simultaneous reveal, bust line, and wound tracking.
@@ -94,3 +106,16 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
   - `tests/test_deadhand_contested_encounter_runner.gd` — deterministic seed-42 scenario + event sequence assertions
 - Purpose: Wave 3 contested encounter module per TDD §8.6 / §9.5 and GDD §4.2. Emits `encounter_started`, `shot_resolved`, `encounter_resolved` via DeadhandEventBus; RNG track `rng_contested`.
 - Verified: `godot4 --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/test_deadhand_contested_encounter_runner.gd -gexit` → `3/3 passed`, exit 0.
+
+### 2026-06-15: NotorietyTracker autoload (W3-2)
+
+- Patch: Hidden notoriety stat (0..20) with threshold crossings at 5/10/15 and run failure at 20 (rope).
+- Files added:
+  - `autoload/deadhand_notoriety_tracker.gd` — `apply_delta`, `get_notoriety`, `reset_for_run`; emits via DeadhandEventBus only
+  - `autoload/deadhand_payloads/notoriety_threshold_crossed_payload.gd` — typed payload for threshold events
+  - `tests/test_deadhand_notoriety_tracker.gd` — clamping, threshold up/down, rope at 20
+- Files modified:
+  - `autoload/deadhand_event_bus.gd` — `notoriety_threshold_crossed` signal + `emit_notoriety_threshold_crossed` helper
+  - `autoload/deadhand_event_log.gd` — log `notoriety_threshold_crossed` events
+  - `project.godot` — `[autoload]` entry for `DeadhandNotorietyTracker` (after `DeadhandPhaseClock`)
+- Verified: `godot4 --headless --path . --import`, then GUT run of `tests/test_deadhand_notoriety_tracker.gd`.
