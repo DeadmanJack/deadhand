@@ -38,6 +38,8 @@ Install location: `~/.local/bin/godot4` (or wherever your PATH expects it).
 - [x] STR imports cleanly under 4.6 (headless `--import` and `--quit-after 60` both pass; only benign UID-fallback warnings)
 - [x] CARDS.md drafted (78 cards + 6 clothing + 5 sets; ambiguities resolved in Appendix A)
 - [x] Root `.gitignore` written
+- [x] Repos created and initial commit pushed: [Forgejo (primary)](https://git.massivedark.com/deadmanjack/deadhand) and [GitHub (mirror)](https://github.com/DeadmanJack/deadhand)
+- [x] `.forgejo/workflows/ci.yml` scaffolded for Godot 4.6 (docs inventory + STR vendor headless import)
 - [ ] GUT test framework installed in `game/addons/gut/`
 - [ ] First mod-overlay roundtrip (one card, one task, one shop entry) — go/no-go gate
 - [ ] Rewrite TDD §9 JSON schemas against STR's real `CardData` property surface
