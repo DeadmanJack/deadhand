@@ -142,6 +142,22 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
 - Purpose: Wave 4 solo task skill-check math per GDD §4.1 and TDD §3.1 ResolutionEngine row.
 - Verified: `godot4 --headless --path . --import`; GUT run of `tests/test_deadhand_resolution_engine.gd`; headless boot exit 0.
 
+### 2026-06-16: Core Deadhand STR actions + beer sting card (W4-3)
+
+- Patch: Four Deadhand `BaseAction` scripts for notoriety, task rewards, memory reveal, and sting riders; mod script take-over mappings; `card_drink_beer` sting card JSON.
+- Files added:
+  - `scripts/deadhand/actions/ActionDeadhandNotorietyDelta.gd` — `apply_delta` on `DeadhandNotorietyTracker`
+  - `scripts/deadhand/actions/ActionDeadhandGrantTaskRewards.gd` — `rng_loot` roll + `DeadhandRunState.apply_money_delta`
+  - `scripts/deadhand/actions/ActionDeadhandRevealMemory.gd` — `memory_card_revealed` + `journal_entry_unlocked` on EventBus
+  - `scripts/deadhand/actions/ActionDeadhandStingRider.gd` — MVP immediate wound rider via RunState
+  - `external/mods/deadhand/scripts/*.gd` — mod-loader script stubs (take-over targets above)
+  - `external/mods/deadhand/cards/card_drink_beer.json` — 5♣ Beer sting card (`sting`, `drink` tags)
+  - `tests/test_deadhand_actions.gd` — action unit tests + Global load check for beer card
+- Files modified:
+  - `external/mods/deadhand/mod_info.json` — `mod_script_file_paths` for all four actions
+- Purpose: Wave 4 core STR action layer per TDD §8.5 / §9.2–§9.3; first playable sting card content.
+- Verified: GUT run of `tests/test_deadhand_actions.gd`; `card_drink_beer` present in `Global._id_to_card_data`.
+
 ### 2026-06-15: Vertical slice content + integration smoke test (W3-5)
 
 - Patch: Rob a Grave task JSON, Town Drunk deck template, vertical slice integration test; fix RNG service GUT parse error (`seed` parameter rename).

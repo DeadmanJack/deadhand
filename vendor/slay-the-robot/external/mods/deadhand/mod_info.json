@@ -47,7 +47,12 @@
 			"minor": 1,
 			"patch": 0
 		},
-		"mod_script_file_paths": {},
+		"mod_script_file_paths": {
+			"external/mods/deadhand/scripts/ActionDeadhandNotorietyDelta.gd": "res://scripts/deadhand/actions/ActionDeadhandNotorietyDelta.gd",
+			"external/mods/deadhand/scripts/ActionDeadhandGrantTaskRewards.gd": "res://scripts/deadhand/actions/ActionDeadhandGrantTaskRewards.gd",
+			"external/mods/deadhand/scripts/ActionDeadhandRevealMemory.gd": "res://scripts/deadhand/actions/ActionDeadhandRevealMemory.gd",
+			"external/mods/deadhand/scripts/ActionDeadhandStingRider.gd": "res://scripts/deadhand/actions/ActionDeadhandStingRider.gd"
+		},
 		"object_id": "mod_data_deadhand"
 	}
 }
