@@ -84,3 +84,16 @@ Both ran cleanly under Godot 4.6.stable on Ubuntu 24.04 on 2026-06-15:
   - `external/mod_list.json` — enable deadhand mod at load_priority 100
   - `data/PrototypeData.gd` — preload-based RNGService hook (no `class_name` collision)
 - Verified: `godot4 --headless --path . --quit-after 60` exit 0; full GUT suite 23/23 pass; mod card/task loaded; EventLog captures boot JSONL.
+
+### 2026-06-15: RunState + PhaseClock (W3-1)
+
+- Patch: Core run-state and day/phase progression autoloads with GUT coverage.
+- Files added:
+  - `autoload/deadhand_run_state.gd` — owns day, phase, money, wounds, action budget; emits `run_state_changed` and `money_changed`
+  - `autoload/deadhand_phase_clock.gd` — M→A→E→N cycle, forced rest after night, day advance
+  - `autoload/deadhand_payloads/run_state_changed_payload.gd`
+  - `tests/test_deadhand_run_state.gd`, `tests/test_deadhand_phase_clock.gd`
+- Files modified:
+  - `autoload/deadhand_event_bus.gd` — `run_state_changed` signal + `emit_run_state_changed()` helper
+  - `project.godot` — autoload entries for `DeadhandRunState`, `DeadhandPhaseClock` (after `DeadhandRNGService`)
+- Verified: GUT runs for run state (3/3) and phase clock (2/2) tests pass headlessly; headless boot exit 0.

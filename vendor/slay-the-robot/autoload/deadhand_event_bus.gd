@@ -12,7 +12,7 @@
 #   - notoriety_changed, money_changed, loot_rolled
 #   - hidden_trigger_fired, memory_card_revealed, journal_entry_unlocked
 #   - set_bonus_activated, set_bonus_deactivated
-#   - run_started, run_ended, rng_rolled, bridged_str_signal
+#   - run_started, run_ended, run_state_changed, rng_rolled, bridged_str_signal
 #
 # Invariants:
 #   - Every emit_* helper constructs exactly one payload Resource before emitting.
@@ -45,6 +45,7 @@ signal set_bonus_activated(payload: SetBonusActivatedPayload)
 signal set_bonus_deactivated(payload: SetBonusDeactivatedPayload)
 signal run_started(payload: RunStartedPayload)
 signal run_ended(payload: RunEndedPayload)
+signal run_state_changed(payload: RunStateChangedPayload)
 signal rng_rolled(payload: RNGRolledPayload)
 signal bridged_str_signal(payload: BridgedSTRSignalPayload)
 
@@ -200,6 +201,14 @@ func emit_run_ended(reason: String, victory: bool = false) -> void:
 	payload.reason = reason
 	payload.victory = victory
 	run_ended.emit(payload)
+
+
+func emit_run_state_changed(field: String, old_value: Variant, new_value: Variant) -> void:
+	var payload := RunStateChangedPayload.new()
+	payload.field = field
+	payload.old_value = old_value
+	payload.new_value = new_value
+	run_state_changed.emit(payload)
 
 
 func emit_rng_rolled(channel: String, result: Variant) -> void:
