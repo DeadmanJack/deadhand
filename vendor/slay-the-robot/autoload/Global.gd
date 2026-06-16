@@ -43,6 +43,11 @@ extends Node
 	["CardData", CardData, "_id_to_card_data", ["cards/"]],
 	["ArtifactData", ArtifactData, "_id_to_artifact_data", ["artifacts/"]],
 	["PlayerData", PlayerData, "_id_to_player_data", ["player/"]],
+	["DeadhandTaskData", DeadhandTaskData, "_id_to_deadhand_task_data", ["deadhand_tasks/"]],
+	["DeadhandContestedEncounterData", DeadhandContestedEncounterData, "_id_to_deadhand_contested_encounter_data", ["deadhand_contested_encounters/"]],
+	["DeadhandHiddenTriggerData", DeadhandHiddenTriggerData, "_id_to_deadhand_hidden_trigger_data", ["deadhand_hidden_triggers/"]],
+	["DeadhandSetBonusData", DeadhandSetBonusData, "_id_to_deadhand_set_bonus_data", ["deadhand_set_bonuses/"]],
+	["DeadhandJournalEntryData", DeadhandJournalEntryData, "_id_to_deadhand_journal_entry_data", ["deadhand_journal_entries/"]],
 ]
 
 ## These lookup tables allow for automating the process of loading, saving, and mapping data
@@ -85,6 +90,11 @@ var _id_to_enemy_data: Dictionary[String, EnemyData] = {}
 var _id_to_card_data: Dictionary[String, CardData] = {}
 var _id_to_artifact_data: Dictionary[String, ArtifactData] = {}
 var _id_to_player_data: Dictionary[String, PlayerData] = {}
+var _id_to_deadhand_task_data: Dictionary[String, DeadhandTaskData] = {}
+var _id_to_deadhand_contested_encounter_data: Dictionary[String, DeadhandContestedEncounterData] = {}
+var _id_to_deadhand_hidden_trigger_data: Dictionary[String, DeadhandHiddenTriggerData] = {}
+var _id_to_deadhand_set_bonus_data: Dictionary[String, DeadhandSetBonusData] = {}
+var _id_to_deadhand_journal_entry_data: Dictionary[String, DeadhandJournalEntryData] = {}
 
 # mutable data; These objects are modifiable
 var player_data: PlayerData = PlayerData.new() # the current run. prototype instance.
@@ -618,6 +628,31 @@ func get_card_data_from_prototypes(card_object_ids: Array[String]) -> Array[Card
 	for card_object_id: String in card_object_ids:
 		card_prototypes.append(get_card_data_from_prototype(card_object_id))
 	return card_prototypes
+#endregion
+
+#region Deadhand Data
+func get_deadhand_task_data(deadhand_task_object_id: String) -> DeadhandTaskData:
+	return _id_to_deadhand_task_data.get(deadhand_task_object_id, null)
+
+func get_deadhand_task_data_from_prototype(deadhand_task_object_id: String) -> DeadhandTaskData:
+	var deadhand_task_data: DeadhandTaskData = get_deadhand_task_data(deadhand_task_object_id)
+	return deadhand_task_data.get_prototype(true)
+
+func get_deadhand_contested_encounter_data(deadhand_contested_encounter_object_id: String) -> DeadhandContestedEncounterData:
+	return _id_to_deadhand_contested_encounter_data.get(deadhand_contested_encounter_object_id, null)
+
+func get_deadhand_contested_encounter_data_from_prototype(deadhand_contested_encounter_object_id: String) -> DeadhandContestedEncounterData:
+	var deadhand_contested_encounter_data: DeadhandContestedEncounterData = get_deadhand_contested_encounter_data(deadhand_contested_encounter_object_id)
+	return deadhand_contested_encounter_data.get_prototype(true)
+
+func get_deadhand_hidden_trigger_data(deadhand_hidden_trigger_object_id: String) -> DeadhandHiddenTriggerData:
+	return _id_to_deadhand_hidden_trigger_data.get(deadhand_hidden_trigger_object_id, null)
+
+func get_deadhand_set_bonus_data(deadhand_set_bonus_object_id: String) -> DeadhandSetBonusData:
+	return _id_to_deadhand_set_bonus_data.get(deadhand_set_bonus_object_id, null)
+
+func get_deadhand_journal_entry_data(deadhand_journal_entry_object_id: String) -> DeadhandJournalEntryData:
+	return _id_to_deadhand_journal_entry_data.get(deadhand_journal_entry_object_id, null)
 #endregion
 
 #region Caches and Packs
