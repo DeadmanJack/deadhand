@@ -5,7 +5,7 @@
 **Status:** Draft
 **Engine:** Godot 4.4+
 **Foundation:** [DesirePathGames / Slay-The-Robot](https://github.com/DesirePathGames/Slay-The-Robot) (MIT)
-**See also:** [`GDD.md`](GDD.md), [`adr/0001-card-framework-choice.md`](adr/0001-card-framework-choice.md)
+**See also:** [`GDD.md`](GDD.md), [`adr/0001-card-framework-choice.md`](adr/0001-card-framework-choice.md), [`adr/0002-deadhand-data-classes-in-global-schema.md`](adr/0002-deadhand-data-classes-in-global-schema.md)
 
 ---
 
@@ -330,18 +330,18 @@ deadhand/
 
 ### 8.1 Vendoring Strategy
 
-We **copy** Slay-The-Robot into `vendor/slay-the-robot/` at a pinned commit. Not a submodule.
+We **copy** Slay-The-Robot into `vendor/slay-the-robot/` at a pinned commit. Not a submodule. This is a **one-time fork** — we will never re-merge upstream STR. All framework changes are tracked as patches in our repo.
 
 **Rationale:**
 - We will need to make small internal patches we control. A submodule encourages upstream-first thinking, but STR is a small framework — upstreaming is not our priority.
 - A copy lets us diff-track our changes inside our own repo.
-- STR's mod loader (see §8.5) gives us a non-invasive override path that *eliminates* most reasons we'd want to fork upstream files.
+- STR's mod loader (see §8.5) gives us a non-invasive override path for content and script overrides; structural changes (new SCHEMA classes) are patched directly in `Global.gd` (see ADR 0002).
 
 **Pinned version:** `6feee71acff1a8e26805aba3bc4440b1078cd7c7` ("Upgraded to Godot 4.6").
 
 **Engine requirement:** Godot **4.6.stable**. STR uses typed `Dictionary[K,V]` syntax (4.4+) and declares `config/features=PackedStringArray("4.6")` in its `project.godot`. Godot 4.3 will not parse the autoloads.
 
-A `vendor/slay-the-robot/VERSION_PIN.md` file records the upstream commit hash, the date we pulled it, the engine requirement, and any patches we've applied (file to be written after first clean headless import).
+`vendor/slay-the-robot/VERSION_PIN.md` is a **patch ledger**: upstream commit hash, pull date, engine requirement, and every file we have modified from the pinned snapshot (with rationale per patch).
 
 ### 8.2 STR's Real Shape (Findings from Inspection)
 
@@ -361,7 +361,7 @@ Direct inspection of the vendored snapshot revealed the framework's actual struc
 
 Cards are mostly "data + lists of action dicts" pointing at these scripts. Deadhand gameplay distinctness is **expressed as new Actions, Validators, and Interceptors** — not as new card classes.
 
-**Autoload count: 15.** Signals, Scenes, Scripts, FileLoader, Random, Global, GlobalTestDataGenerator, GlobalProdDataGenerator, ActionHandler, ActionGenerator, DebugLogger, HandManager, SoundManager, StatsHandler, + one more. This is a sizable global surface to inherit. **Coupling risk:** flagged.
+**Autoload count: 13.** Signals, Scenes, Scripts, FileLoader, Random, Global, GlobalTestDataGenerator, ActionHandler, ActionGenerator, DebugLogger, HandManager, SoundManager, StatsHandler. (`GlobalProdDataGenerator` is registered but inactive — commented out in shipping config.) This is a sizable global surface to inherit. **Coupling risk:** flagged.
 
 **Mod loader has true script-override capability.** `external/mod_list.json` + each mod's `mod_script_file_paths` map external `.gd` files over upstream `res://...gd` files. This is the cleanest seam for non-invasive patching.
 
@@ -388,7 +388,7 @@ This decision is reversible if we hit a wall — see §8.6 off-ramp.
 - All Deadhand cards, tasks, encounters, items live under `external/mods/deadhand/` as JSON conforming to STR's `CardData` / `EncounterData` / `ArtifactData` property surfaces (the field names match the `@export` vars in `data/prototype/*.gd`).
 - Deadhand-specific Actions (sting riders, contested-encounter operators, hidden-trigger probes) live as `.gd` files under our own `game/scripts/actions/deadhand/`, referenced from JSON by `res://` path — exactly like STR's `card_play_actions` format already supports.
 - Where we need a behavior STR doesn't allow data-driven, we use the mod loader's **script override** (`mod_script_file_paths`) to monkey-patch the specific STR file. These overrides live in `external/mods/deadhand/script_overrides/` and are listed in our `VERSION_PIN.md`.
-- Deadhand-specific data classes (e.g., `TaskData` if needed beyond STR's `EncounterData`) register into `Global.SCHEMA` via the mod loader's append mechanism, not by editing `Global.gd` directly.
+- Deadhand-specific data classes (`DeadhandTaskData`, `DeadhandContestedEncounterData`, etc.) register into `Global.SCHEMA` by **patching `Global.gd` directly** — the mod loader cannot append SCHEMA rows (see ADR 0002 and `docs/cards/STR_SCHEMA_REFERENCE.md` §3).
 
 ### 8.4 What We Use As-Is
 
@@ -411,7 +411,7 @@ This decision is reversible if we hit a wall — see §8.6 off-ramp.
 | `scripts/actions/custom_actions/` | New Deadhand actions: `ActionDeadhandStingRider`, `ActionDeadhandWound`, `ActionDeadhandNotorietyDelta`, `ActionDeadhandRevealMemory`, `ActionDeadhandHiddenTriggerProbe`, etc. |
 | `scripts/validators/` | New validators: `ValidatorPhaseIs`, `ValidatorEquipmentSetActive`, `ValidatorNotorietyAtLeast`, `ValidatorJournalEntryUnlocked` |
 | Status effects | `wound`, `intimidation`, `drunk`, `cursed` |
-| `Global.SCHEMA` (via mod loader) | `TaskData`, `MemoryCardData`, `HiddenTriggerData`, `JournalEntryData`, `SetBonusData` |
+| `Global.SCHEMA` (patched in `Global.gd`) | `DeadhandTaskData`, `DeadhandContestedEncounterData`, `DeadhandHiddenTriggerData`, `DeadhandSetBonusData`, `DeadhandJournalEntryData` |
 | Shop UI subclass | Saloon variant — purchase converts to a Sting card and shuffles into deck |
 | Encounter runner | Subclass `ContestedEncounter` for 3-shot simultaneous-reveal duel mode (see §8.6) |
 
@@ -445,130 +445,432 @@ This is a real off-ramp, not theater. We do not invest 3 weeks fighting STR's as
 
 ## 9. Data Schemas
 
-> **⚠ Revision needed.** The JSON examples in this section were drafted **before** Slay-The-Robot was inspected and reflect a hypothetical schema. The actual `CardData` field surface lives at `vendor/slay-the-robot/data/prototype/CardData.gd` and uses STR's property names verbatim (e.g., `card_name`, `card_energy_cost`, `card_play_actions`, `card_values`). Our authoring format is the mod-overlay JSON shape demonstrated by `vendor/slay-the-robot/external/mods/example_mod/cards/card_modded_card.json`.
->
-> **Action:** rewrite §9.1–§9.5 against STR's actual property surface as the first task after Godot 4.6 is installed and the demo imports cleanly. Until then, the examples below are **directionally correct for intent but wrong in field names** — treat them as design sketches, not specs.
+All Deadhand content is authored as STR mod-overlay JSON using the `{ "properties": { ... }, "patch_data": { } }` wrapper (see `docs/cards/STR_SCHEMA_REFERENCE.md` §4.4). Field names match `@export` vars on the prototype class verbatim. Deadhand-specific classes extend STR's base types and register in `Global.SCHEMA` via a patched `Global.gd` (ADR 0002).
 
-### 9.1 Cards (JSON, STR-compatible)
+**Class hierarchy summary:**
+
+| Section | STR class | Extends | New? |
+|---|---|---|---|
+| §9.1–§9.3 | `CardData` | `PrototypeData` | No — reuse STR |
+| §9.4 | `DeadhandTaskData` | `PrototypeData` | Yes |
+| §9.5 | `DeadhandContestedEncounterData` | `PrototypeData` | Yes |
+| §9.6 | `DeadhandHiddenTriggerData` | `SerializableData` | Yes |
+| §9.7 | `DeadhandSetBonusData` | `SerializableData` | Yes |
+| §9.8 | `DeadhandJournalEntryData` | `SerializableData` | Yes |
+| §9.9 | `CardPackData` | `SerializableData` | No — reuse STR |
+
+Memory cards are **not** a separate class — they are `CardData` with `card_tags: ["memory"]` and `ActionDeadhandRevealMemory` on `card_draw_actions`.
+
+### 9.1 Cards (`CardData`)
+
+Standard playing cards and named face cards. Poker identity (suit, rank, face/ace flags) lives in `card_values`; STR-native fields handle display and play plumbing.
+
+| Deadhand concept | STR field | Notes |
+|---|---|---|
+| Stable ID | `object_id` | Required in JSON `properties` |
+| Display name | `card_name` | |
+| Flavor / mechanics text | `card_description` | `[value]` tokens read from `card_values` |
+| Art | `card_texture_path` | External partial path via `FileLoader.load_texture` |
+| Suit | `card_values["suit"]` | `"hearts"`, `"spades"`, `"diamonds"`, `"clubs"` |
+| Rank | `card_values["rank"]` | `2`–`14` (11=J, 12=Q, 13=K, 14=A) |
+| Face card | `card_values["is_face"]` | `bool` |
+| Ace | `card_values["is_ace"]` | `bool` |
+| Check value | `card_values["value"]` | Numeric contribution in skill checks |
+| Sting flag | `card_values["is_sting"]` | `false` for standard cards |
+| Tags | `card_tags` | e.g. `["face", "weapon"]` |
+| Play effects | `card_play_actions` | Path-keyed action dicts (§9.2 for sting riders) |
 
 ```json
 {
-  "id": "j_spades_bowie",
-  "display_name": "The Bowie",
-  "suit": "spades",
-  "rank": 11,
-  "is_face": true,
-  "is_ace": false,
-  "is_sting": false,
-  "value": 11,
-  "actions": [
-    {"id": "grit_bonus", "amount": 3},
-    {"id": "duel_wound_on_win"}
-  ],
-  "tags": ["face", "weapon"],
-  "flavor_text": "Found in the dirt under a hanged man.",
-  "art_path": "res://game/art/cards/j_spades_bowie.png"
-}
-```
-
-### 9.2 Sting Cards (JSON, extension)
-
-```json
-{
-  "id": "drink_whiskey_courage",
-  "display_name": "Whiskey Courage",
-  "suit": "spades",
-  "rank": 9,
-  "is_sting": true,
-  "value": 9,
-  "tags": ["drink"],
-  "sting_rider": {
-    "id": "wound_at_eoe",
-    "params": {"amount": 1, "timing": "end_of_encounter"}
+  "properties": {
+    "object_id": "card_j_spades_bowie",
+    "card_name": "The Bowie",
+    "card_description": "Found in the dirt under a hanged man. [value] Grit when played in a Spades check.",
+    "card_texture_path": "external/mods/deadhand/art/cards/j_spades_bowie.png",
+    "card_type": 0,
+    "card_rarity": 3,
+    "card_energy_cost": 0,
+    "card_requires_target": false,
+    "card_appears_in_card_packs": false,
+    "card_tags": ["face", "weapon"],
+    "card_values": {
+      "suit": "spades",
+      "rank": 11,
+      "value": 11,
+      "is_face": true,
+      "is_ace": false,
+      "is_sting": false
+    },
+    "card_play_actions": [
+      {
+        "res://game/scripts/actions/deadhand/ActionDeadhandGritBonus.gd": {
+          "amount": 3
+        }
+      }
+    ]
   },
-  "flavor_text": "Burns going down.",
-  "art_path": "res://game/art/cards/drink_whiskey.png"
+  "patch_data": {}
 }
 ```
 
-### 9.3 Tasks (JSON)
+**Mod folder mapping:** `external/mods/deadhand/cards/` → `{ "class_name": "CardData", "table_name": "_id_to_card_data" }`.
+
+### 9.2 Sting Cards (`CardData` + `card_tags: ["sting"]`)
+
+Sting cards are ordinary `CardData` instances with `card_values["is_sting"]: true`, tag `"sting"`, and a custom Action on `card_play_actions` (or end-of-turn actions for delayed riders). There is no separate prototype class.
+
+| Deadhand concept | STR field | Notes |
+|---|---|---|
+| Sting identity | `card_tags` | Must include `"sting"` |
+| Sting flag | `card_values["is_sting"]` | `true` |
+| Rider logic | `card_play_actions` | Custom Action script + param dict |
+| Rider ID (optional) | `card_values["sting_rider_id"]` | For telemetry / set-bonus lookups |
+| Drink tag | `card_tags` | e.g. `["sting", "drink"]` |
 
 ```json
 {
-  "id": "rob_grave",
-  "display_name": "Rob a Grave",
-  "location": "cemetery",
-  "primary_suit": "hearts",
-  "difficulty_class": 11,
-  "available_phases": ["night"],
-  "action_cost": 1,
-  "rewards": {
-    "money_min": 3,
-    "money_max": 8,
-    "loot_table_id": "rob_grave_basic",
-    "notoriety_delta": 1
+  "properties": {
+    "object_id": "card_drink_whiskey_courage",
+    "card_name": "Whiskey Courage",
+    "card_description": "Burns going down. +[value] in Spades checks. Wound at end of encounter.",
+    "card_texture_path": "external/mods/deadhand/art/cards/drink_whiskey.png",
+    "card_type": 1,
+    "card_rarity": 1,
+    "card_energy_cost": 0,
+    "card_requires_target": false,
+    "card_appears_in_card_packs": false,
+    "card_tags": ["sting", "drink"],
+    "card_values": {
+      "suit": "spades",
+      "rank": 9,
+      "value": 9,
+      "is_sting": true,
+      "sting_rider_id": "wound_at_eoe"
+    },
+    "card_play_actions": [
+      {
+        "res://game/scripts/actions/deadhand/ActionDeadhandStingRider.gd": {
+          "wound_amount": 1,
+          "timing": "end_of_encounter"
+        }
+      }
+    ]
   },
-  "failure_consequences": [
-    {"id": "hp_loss", "amount": 1},
-    {"id": "encounter_draw", "weight": 0.5}
-  ],
-  "flavor_text": "The soil here is loose. Recent work."
+  "patch_data": {}
 }
 ```
 
-### 9.4 Encounters (JSON)
+Purchasing a drink at the Saloon creates a sting card via shop Actions and shuffles it into the deck — same JSON shape, new `object_id`.
+
+### 9.3 Memory Cards (`CardData` + `card_tags: ["memory"]`)
+
+Memory cards are **not** a separate class. They are `CardData` with `card_tags: ["memory"]` and `ActionDeadhandRevealMemory` on **`card_draw_actions`** (fires when the card enters hand, before the player chooses to play it). The reveal Action unlocks journal entries and burns the card out of the deck.
+
+| Deadhand concept | STR field | Notes |
+|---|---|---|
+| Memory identity | `card_tags` | Must include `"memory"` |
+| Reveal on draw | `card_draw_actions` | `ActionDeadhandRevealMemory` |
+| Journal link | Action param `journal_entry_id` | Passed in action value dict |
+| One-shot burn | `card_play_destination` | `"EXHAUST_PILE"` or burn Action in draw handler |
 
 ```json
 {
-  "id": "duel_stranger",
-  "kind": "contested",
-  "primary_suit": "hearts",
-  "rounds": 3,
-  "bust_line": 0,
-  "opponent": {
-    "deck_template_id": "drifter_basic",
-    "wound_limit": 3,
-    "hand_size": 5
+  "properties": {
+    "object_id": "card_memory_locket_1",
+    "card_name": "Engraved Locket",
+    "card_description": "A locket, still warm. Something about the initials inside…",
+    "card_texture_path": "external/mods/deadhand/art/cards/memory_locket.png",
+    "card_type": 4,
+    "card_rarity": 4,
+    "card_energy_cost": 0,
+    "card_requires_target": false,
+    "card_appears_in_card_packs": false,
+    "card_unremovable_from_deck": false,
+    "card_tags": ["memory"],
+    "card_values": {
+      "suit": "hearts",
+      "rank": 0,
+      "value": 0,
+      "is_sting": false
+    },
+    "card_draw_actions": [
+      {
+        "res://game/scripts/actions/deadhand/ActionDeadhandRevealMemory.gd": {
+          "journal_entry_id": "journal_locket_engraved_e"
+        }
+      }
+    ],
+    "card_play_destination": "EXHAUST_PILE"
   },
-  "player_wound_limit": 3,
-  "on_win": {"money_min": 5, "money_max": 15, "loot_table_id": "duel_win"},
-  "on_lose": {"hp_loss": 2},
-  "flavor_text": "He squares up before you finish your drink."
+  "patch_data": {}
 }
 ```
 
-### 9.5 Deck Templates (Opponent decks)
+### 9.4 Tasks (`DeadhandTaskData`)
+
+Player-initiated skill checks during a Phase. Extends `PrototypeData`. Loaded from mod JSON into `Global._id_to_deadhand_task_data` (SCHEMA row added in patched `Global.gd`).
+
+| Field | Type | Notes |
+|---|---|---|
+| `object_id` | `String` | Stable task ID (e.g. `task_rob_grave`) |
+| `task_name` | `String` | Display name |
+| `task_location_id` | `String` | Town location where task is offered |
+| `task_primary_suit` | `String` | `"hearts"`, `"spades"`, `"diamonds"`, `"clubs"` |
+| `task_difficulty_class` | `int` | DC for skill-check resolution |
+| `task_available_phases` | `Array[String]` | e.g. `["morning", "night"]` |
+| `task_action_cost` | `int` | Phase actions consumed (1 default) |
+| `task_reward_money_min` | `int` | Inclusive min payout on success |
+| `task_reward_money_max` | `int` | Inclusive max payout on success |
+| `task_reward_loot_table_id` | `String` | Loot table for `LootRoller` |
+| `task_notoriety_delta` | `int` | Applied on success via `NotorietyTracker` |
+| `task_on_success_actions` | `Array[Dictionary]` | STR action list on success |
+| `task_on_failure_actions` | `Array[Dictionary]` | STR action list on failure |
+| `task_flavor_text` | `String` | Location/task picker description |
 
 ```json
 {
-  "id": "drifter_basic",
-  "size": 12,
-  "composition": [
-    {"suit_weights": {"hearts": 0.4, "spades": 0.3, "diamonds": 0.2, "clubs": 0.1}},
-    {"rank_range": [2, 9]},
-    {"face_card_count": 1, "face_pool": ["q_hearts_widow"]}
-  ]
-}
-```
-
-### 9.6 Hidden Triggers (JSON)
-
-```json
-{
-  "id": "preacher_coat_cemetery_ghost",
-  "conditions": [
-    {"type": "equipped", "slot": "body", "item_id": "preacher_coat"},
-    {"type": "phase", "phase": "night"},
-    {"type": "location", "location": "cemetery"}
-  ],
-  "fires_at_most": "once_per_run",
-  "on_fire": {
-    "spawn_encounter": "whispering_ghost",
-    "emit_line": "A ghost watches you from the headstones."
+  "properties": {
+    "object_id": "task_rob_grave",
+    "task_name": "Rob a Grave",
+    "task_location_id": "location_cemetery",
+    "task_primary_suit": "hearts",
+    "task_difficulty_class": 11,
+    "task_available_phases": ["night"],
+    "task_action_cost": 1,
+    "task_reward_money_min": 3,
+    "task_reward_money_max": 8,
+    "task_reward_loot_table_id": "loot_rob_grave_basic",
+    "task_notoriety_delta": 1,
+    "task_on_success_actions": [
+      {
+        "res://game/scripts/actions/deadhand/ActionDeadhandGrantTaskRewards.gd": {}
+      }
+    ],
+    "task_on_failure_actions": [
+      {
+        "res://game/scripts/actions/deadhand/ActionDeadhandWound.gd": { "amount": 1 }
+      },
+      {
+        "res://game/scripts/actions/deadhand/ActionDeadhandDrawEncounter.gd": {
+          "encounter_id": "encounter_empty_grave",
+          "weight": 0.5
+        }
+      }
+    ],
+    "task_flavor_text": "The soil here is loose. Recent work."
   },
-  "journal_entry_id": "whispering_ghost_first"
+  "patch_data": {}
 }
 ```
+
+**Mod folder mapping:** `external/mods/deadhand/tasks/` → `{ "class_name": "DeadhandTaskData", "table_name": "_id_to_deadhand_task_data" }`.
+
+### 9.5 Contested Encounters (`DeadhandContestedEncounterData`)
+
+Forced duel encounters — 3-round simultaneous reveal, bust line, per-side wound tracks. Extends `PrototypeData`. **Not** STR's PvE `EventData`/`EnemyData` flow.
+
+| Field | Type | Notes |
+|---|---|---|
+| `object_id` | `String` | Stable encounter ID |
+| `contested_name` | `String` | Display name |
+| `contested_primary_suit` | `String` | Suit governing round resolution |
+| `contested_rounds` | `int` | Usually `3` |
+| `contested_bust_line` | `int` | Sum threshold; at or below = bust |
+| `contested_player_wound_limit` | `int` | Player wounds before defeat |
+| `contested_opponent_deck_template_id` | `String` | `CardPackData.object_id` for opponent draw pool |
+| `contested_opponent_wound_limit` | `int` | Opponent wounds before player win |
+| `contested_opponent_hand_size` | `int` | Cards opponent holds per round |
+| `contested_on_win_actions` | `Array[Dictionary]` | Rewards on player victory |
+| `contested_on_lose_actions` | `Array[Dictionary]` | Consequences on player defeat |
+| `contested_flavor_text` | `String` | Pre-encounter description |
+
+```json
+{
+  "properties": {
+    "object_id": "encounter_duel_stranger",
+    "contested_name": "Duel a Stranger",
+    "contested_primary_suit": "hearts",
+    "contested_rounds": 3,
+    "contested_bust_line": 0,
+    "contested_player_wound_limit": 3,
+    "contested_opponent_deck_template_id": "pack_drifter_basic",
+    "contested_opponent_wound_limit": 3,
+    "contested_opponent_hand_size": 5,
+    "contested_on_win_actions": [
+      {
+        "res://game/scripts/actions/deadhand/ActionDeadhandGrantContestedRewards.gd": {
+          "money_min": 5,
+          "money_max": 15,
+          "loot_table_id": "loot_duel_win"
+        }
+      }
+    ],
+    "contested_on_lose_actions": [
+      {
+        "res://game/scripts/actions/deadhand/ActionDeadhandWound.gd": { "amount": 2 }
+      }
+    ],
+    "contested_flavor_text": "He squares up before you finish your drink."
+  },
+  "patch_data": {}
+}
+```
+
+**Mod folder mapping:** `external/mods/deadhand/encounters/` → `{ "class_name": "DeadhandContestedEncounterData", "table_name": "_id_to_deadhand_contested_encounter_data" }`.
+
+### 9.6 Hidden Triggers (`DeadhandHiddenTriggerData`)
+
+Contextual interactions evaluated by `SecretsTracker` (§3.1). Extends `SerializableData` (readonly template, not combat-mutable).
+
+| Field | Type | Notes |
+|---|---|---|
+| `object_id` | `String` | Stable trigger ID |
+| `trigger_conditions` | `Array[Dictionary]` | Predicate list (equipped item, phase, location, journal state, etc.) |
+| `trigger_fires_at_most` | `String` | e.g. `"once_per_run"`, `"once_ever"`, `"unlimited"` |
+| `trigger_on_fire_actions` | `Array[Dictionary]` | Actions when trigger fires (spawn encounter, grant item, etc.) |
+| `trigger_emit_line` | `String` | NPC/narrator one-liner on fire |
+| `trigger_journal_entry_id` | `String` | Optional journal unlock (`DeadhandJournalEntryData.object_id`) |
+
+```json
+{
+  "properties": {
+    "object_id": "trigger_preacher_coat_cemetery_ghost",
+    "trigger_conditions": [
+      { "type": "equipped", "slot": "body", "artifact_id": "artifact_preacher_coat" },
+      { "type": "phase", "phase": "night" },
+      { "type": "location", "location_id": "location_cemetery" }
+    ],
+    "trigger_fires_at_most": "once_per_run",
+    "trigger_on_fire_actions": [
+      {
+        "res://game/scripts/actions/deadhand/ActionDeadhandStartContestedEncounter.gd": {
+          "encounter_id": "encounter_whispering_ghost"
+        }
+      }
+    ],
+    "trigger_emit_line": "A ghost watches you from the headstones.",
+    "trigger_journal_entry_id": "journal_whispering_ghost_first"
+  },
+  "patch_data": {}
+}
+```
+
+**Mod folder mapping:** `external/mods/deadhand/secrets/` → `{ "class_name": "DeadhandHiddenTriggerData", "table_name": "_id_to_deadhand_hidden_trigger_data" }`.
+
+### 9.7 Set Bonuses (`DeadhandSetBonusData`)
+
+Equipment/card-tag combinations that grant passive effects when active. Evaluated when deck or equipment changes.
+
+| Field | Type | Notes |
+|---|---|---|
+| `object_id` | `String` | Stable set ID |
+| `set_name` | `String` | Display name in saddlebag UI |
+| `set_required_artifact_ids` | `Array[String]` | All must be equipped |
+| `set_required_card_tags` | `Array[String]` | Tags counted in deck + hand |
+| `set_required_card_tag_min_count` | `int` | Minimum cards matching tags |
+| `set_on_activate_actions` | `Array[Dictionary]` | Fired when set becomes active |
+| `set_on_deactivate_actions` | `Array[Dictionary]` | Fired when set breaks |
+| `set_discovery_line` | `String` | First-time activation flavor line |
+
+```json
+{
+  "properties": {
+    "object_id": "set_four_aces",
+    "set_name": "Four Aces",
+    "set_required_artifact_ids": [],
+    "set_required_card_tags": ["ace"],
+    "set_required_card_tag_min_count": 4,
+    "set_on_activate_actions": [
+      {
+        "res://game/scripts/actions/deadhand/ActionDeadhandNotorietyDelta.gd": {
+          "delta": -1,
+          "reason": "four_aces_set"
+        }
+      }
+    ],
+    "set_on_deactivate_actions": [],
+    "set_discovery_line": "Four aces. The deck feels heavier."
+  },
+  "patch_data": {}
+}
+```
+
+**Mod folder mapping:** `external/mods/deadhand/sets/` → `{ "class_name": "DeadhandSetBonusData", "table_name": "_id_to_deadhand_set_bonus_data" }`.
+
+### 9.8 Journal Entries (`DeadhandJournalEntryData`)
+
+Persistent lore entries unlocked by memory cards, hidden triggers, or endings. Meta-persisted via `SaveManager` (§10.2).
+
+| Field | Type | Notes |
+|---|---|---|
+| `object_id` | `String` | Stable journal entry ID |
+| `journal_title` | `String` | Headline in journal UI |
+| `journal_body` | `String` | Full lore text |
+| `journal_unlock_source` | `String` | Provenance tag (`memory`, `trigger`, `ending`, etc.) |
+| `journal_category` | `String` | UI grouping (e.g. `"people"`, `"places"`, `"supernatural"`) |
+
+```json
+{
+  "properties": {
+    "object_id": "journal_locket_engraved_e",
+    "journal_title": "Engraved Locket",
+    "journal_body": "Initials inside: E.M. The same initials on the headstone you dug up last night.",
+    "journal_unlock_source": "memory",
+    "journal_category": "people"
+  },
+  "patch_data": {}
+}
+```
+
+**Mod folder mapping:** `external/mods/deadhand/journal/` → `{ "class_name": "DeadhandJournalEntryData", "table_name": "_id_to_deadhand_journal_entry_data" }`.
+
+### 9.9 Opponent Decks (`CardPackData`)
+
+Opponent draw pools for contested encounters. Reuses STR's `CardPackData` — explicit card IDs plus optional validators/filters. Referenced by `DeadhandContestedEncounterData.contested_opponent_deck_template_id`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `object_id` | `String` | Pack ID (e.g. `pack_drifter_basic`) |
+| `card_pack_card_ids` | `Array[String]` | Explicit card `object_id`s in the pool |
+| `card_pack_color_id` | `String` | Optional color filter (empty = any) |
+| `card_pack_validators` | `Array[Dictionary]` | Additional `ValidatorCard*` gates |
+| `exclude_non_standard_rarities` | `bool` | Usually `false` for opponent pools |
+| `exclude_non_standard_types` | `bool` | Usually `false` for opponent pools |
+
+```json
+{
+  "properties": {
+    "object_id": "pack_drifter_basic",
+    "card_pack_card_ids": [
+      "card_2_hearts",
+      "card_3_hearts",
+      "card_4_hearts",
+      "card_5_hearts",
+      "card_6_hearts",
+      "card_7_hearts",
+      "card_8_hearts",
+      "card_9_hearts",
+      "card_2_spades",
+      "card_3_spades",
+      "card_q_hearts_widow"
+    ],
+    "card_pack_color_id": "",
+    "card_pack_validators": [
+      {
+        "res://scripts/validators/ValidatorCardTag.gd": { "card_tag": "opponent_pool" }
+      }
+    ],
+    "exclude_non_standard_rarities": false,
+    "exclude_non_standard_types": false,
+    "card_pack_displays_in_codex": false
+  },
+  "patch_data": {}
+}
+```
+
+**Mod folder mapping:** `external/mods/deadhand/deck_templates/` → `{ "class_name": "CardPackData", "table_name": "_id_to_card_pack_data" }`.
+
+> **Authoring note:** STR has no procedural suit/rank generator. Opponent pools are maintained as explicit `card_pack_card_ids` lists (or validator-filtered subsets of registered cards). The old TDD "composition / suit_weights" sketch is replaced by this model.
 
 ---
 
@@ -606,8 +908,8 @@ We keep the last 100 run logs by default, with the option to "pin" a run to prev
 ## 11. Open Questions (Engineering)
 
 - [x] ~~Final Godot version pin — 4.4 (STR target) vs. 4.6 (latest stable).~~ **Resolved: 4.6.stable.** STR's pinned commit declares `config/features=PackedStringArray("4.6")` and uses typed `Dictionary[K,V]` syntax (4.4+). 4.6 is mandatory.
-- [ ] Rewrite §9 JSON schemas against STR's real `CardData`/`EncounterData` property surface (see §9 warning). Blocker: Godot 4.6 install.
-- [ ] Decide whether Deadhand-specific data classes register into `Global.SCHEMA` via mod loader append (option B, current lean) or by editing `Global.gd` directly (option A). Defer until Step 5 of §8.7 checkpoint sequence.
+- [x] ~~Rewrite §9 JSON schemas against STR's real `CardData`/`EncounterData` property surface (see §9 warning). Blocker: Godot 4.6 install.~~ **Resolved:** §9 rewritten against `STR_SCHEMA_REFERENCE.md`; five new Deadhand classes in ADR 0002.
+- [x] ~~Decide whether Deadhand-specific data classes register into `Global.SCHEMA` via mod loader append (option B, current lean) or by editing `Global.gd` directly (option A). Defer until Step 5 of §8.7 checkpoint sequence.~~ **Resolved:** Option C — patch `Global.gd` directly (ADR 0002). Mod loader cannot extend SCHEMA.
 - [ ] EventLog flush cadence in release builds — per-event (safest, slow) vs. per-N-events (faster, lossier on crash). Default per-event for v1.0, revisit if perf bites.
 - [ ] CLI scenario format — YAML (chosen) vs. JSON. YAML wins for human-write, but scenarios generated by agents might benefit from JSON. Plan: support both, YAML as primary.
 - [ ] Save file encryption — none for v1.0 (it's a single-player game; cheaters cheat themselves).
